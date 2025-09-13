@@ -136,10 +136,10 @@ We offer some examples of how to use our package through the notebook.
 
 | Feature | Notebook |
 |---|---|
-| Off-the-shelf Diagnosis | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/Nanboy-Ronan/MedVLMBench/blob/main/examples/MedVLMBench_OTS_Diagnosis.ipynb) |
-| Off-the-shelf VQA | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/Nanboy-Ronan/MedVLMBench/blob/main/examples/MedVLMBench_OTS_VQA.ipynb) |
-| LP Diagnosis | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/Nanboy-Ronan/MedVLMBench/blob/main/examples/MedVLMBench_LP_Diagnosis.ipynb) |
-| LoRA Adaptation VQA | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/Nanboy-Ronan/MedVLMBench/blob/main/examples/MedVLMBench_LoRA_VQA.ipynb) |
+| Off-the-shelf Diagnosis | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Nanboy-Ronan/MedVLMBench/blob/main/examples/MedVLMBench_OTS_Diagnosis.ipynb) |
+| Off-the-shelf VQA | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Nanboy-Ronan/MedVLMBench/blob/main/examples/MedVLMBench_OTS_VQA.ipynb) |
+| LP Diagnosis | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Nanboy-Ronan/MedVLMBench/blob/main/examples/MedVLMBench_LP_Diagnosis.ipynb) |
+| LoRA Adaptation VQA | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Nanboy-Ronan/MedVLMBench/blob/main/examples/MedVLMBench_LoRA_VQA.ipynb) |
 
 ### Command-Line Interface
 
