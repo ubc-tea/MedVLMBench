@@ -1,6 +1,6 @@
 # MedVLMBench: A Unified Benchmark for Generalist and Specialist Medical Vision-Language Models
 
-MedVLMBench is the first unified benchmark for systematically evaluating generalist and medical-specialist Vision-Language Models (VLMs). This repository provides the code and resources to reproduce the experiments and extend the benchmark.
+MedVLMBench is the first unified benchmark for systematically evaluating generalist and medical-specialist Vision-Language Models (VLMs). This repository provides the code and resources to reproduce the experiments and extend the benchmark. It provides the implementation for paper "Can Generalist Vision Language Models (VLMs) Rival Specialist Medical VLMs? Benchmarking and Strategic Insights"
 
 ## Table of Contents
 
@@ -21,25 +21,30 @@ MedVLMBench is the first unified benchmark for systematically evaluating general
 
 ## Abstract
 
-> **Background:** Vision–Language Models (VLMs) have shown promise in automating image diagnosis and interpretation in clinical settings. However, developing medical-specialist VLMs requires substantial computational resources and carefully curated datasets, and it remains unclear under which conditions generalist and medical specialist VLMs each perform best.
+> **Background:** Vision–Language Models (VLMs) have shown promise in automating image diagnosis and interpretation in clinical settings. However, developing specialist medical VLMs requires substantial computational resources and carefully curated datasets, and it remains unclear under which conditions generalist and specialist medical VLMs each perform best.
 >
-> **Methods:** This paper introduces MedVLMBench, the first unified benchmark for systematically evaluating generalist and medical-specialist VLMs. We assessed 18 models spanning contrastive and generative paradigms on 10 publicly available datasets across radiology, pathology, dermatology, and ophthalmology, encompassing 144 diagnostic and 80 VQA settings. MedVLMBench focusing on assessing both in-domain (ID) and out-of-domain (OOD) performance, with off-the-shelf and parameter-efficient fine-tuning (e.g., linear probing, LoRA). Diagnostic classification tasks were evaluated using AUROC, while visual question answering (VQA) tasks were assessed with BLEU-1, ROUGE-L, Exact Match, F1 Score, and GPT-based semantic scoring, covering both open- and closed-ended formats. Computational efficiency was estimated relative to the cost of full medical pretraining.
+> **Methods:** This paper introduces MedVLMBench, the first unified benchmark and evaluation framework designed for direct, fair comparisons of paired generalist and specialist medical VLMs from the same model families. Our benchmark is comprehensive, assessing 18 models across radiology, pathology, dermatology, and ophthalmology on 144 diagnostic and 72 visual-question answering (VQA) tasks. MedVLMBench focusing on assessing both in-domain (ID) and out-of-domain (OOD) performance, with off-the-shelf and parameter-efficient fine-tuning (e.g., linear probing, LoRA). Diagnostic classification tasks were evaluated using AUROC, while VQA tasks were assessed with BLEU-1, ROUGE-L, Exact Match, F1 Score, and GPT-based semantic scoring, covering both open- and closed-ended formats.
 >
-> **Results:** As expected, off-the-shelf medical VLMs generally outperformed generalist VLMs on ID tasks given their pretraining. However, with lightweight fine-tuning, general-purpose VLMs achieved superior performance in most of ID task evaluations and demonstrated better generalization on OOD tasks in approximately all comparisons. Fine-tuning required only 3% of the total parameters associated with full medical pretraining. In contrast, fine-tuned medical VLMs showed degraded performance even on ID tasks when subjected to rigorous hyperparameter optimization, further highlighting their limited adaptability.
+> **Results:** As expected, off-the-shelf specialist medical VLMs generally outperformed generalist VLMs on ID tasks given their pretraining. However, with lightweight fine-tuning, generalist VLMs achieved superior performance in most of ID task evaluations and demonstrated better generalization on OOD tasks in the majority of comparisons. Fine-tuning required only updating small amounts of parameters associated with full medical pretraining. In contrast, fine-tuned specialist medical VLMs do not show comparable performance even with the same level of fine-tuning.
 >
-> **Conclusions:** This study highlights the complementary strengths of medical-specialist and generalist VLMs. Specialists remain valuable in modality-aligned use cases, but we find that efficiently fine-tuned generalist VLMs can achieve comparable or even superior performance in most tasks, particularly when transferring to unseen or rare OOD medical modalities. These results suggest that generalist VLMs, rather than being constrained by their lack of medical-specific pretraining, may offer a scalable and cost-effective pathway for advancing clinical AI development.
+> **Conclusions:** This study highlights the complementary strengths of specialist medical and generalist VLMs. Specialists remain valuable in modality-aligned use cases, but we find that efficiently fine-tuned generalist VLMs can achieve comparable or even superior performance in most tasks, particularly when transferring to unseen or rare OOD medical modalities. These results suggest that generalist VLMs, rather than being constrained by their lack of specialist medical pretraining, may offer a scalable and cost-effective pathway for advancing clinical AI development.
 
 
 ## Getting Started
 
 ### Prerequisites
 
+During develop this benchmark, we find it is impossible to setup one environemtn to launch all _generative VLMs_. Those VLMs are rapidly involved with the developing environemtn and needs to setup the seperate environement for them. Below, we provide the environment for setting up the _contrastive VLMs_.
+
 Ensure you have an environment with Python and the necessary dependencies. You can set up a conda environment using the provided `environment.yml` file:
 
 ```bash
-conda env create -f environment.yml
-conda activate medvlmbenc
+conda env create --name medvlmbench
+conda activate medvlmbench
+pip install -r requirements.txt
 ```
+
+**You can refer to the colab tutorial below to check the environemtn requirements.
 
 ### Installation
 
