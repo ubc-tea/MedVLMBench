@@ -10,6 +10,7 @@ import torch
 from torch.utils.data import Dataset
 import torchvision.transforms as transforms
 from PIL import Image
+from transformers.image_processing_utils import BatchFeature
 
 import model.release.llava.conversation as conversation_lib
 from model.release.llava.mm_utils import tokenizer_image_token
@@ -263,6 +264,51 @@ class LLaVADataset(Dataset):
     def __len__(self):
         return len(self.base_dataset)
 
+    def _merge_images_for_llava(self, image):
+        if isinstance(image, Image.Image):
+            return image.convert("RGB")
+        if isinstance(image, BatchFeature):
+            image = image["pixel_values"]
+        if isinstance(image, dict) and "pixel_values" in image:
+            image = image["pixel_values"]
+        if isinstance(image, torch.Tensor) and image.ndim == 4 and image.shape[0] == 1:
+            image = image[0]
+        if isinstance(image, torch.Tensor) and image.ndim == 3:
+            return image
+
+        if isinstance(image, list):
+            if image and isinstance(image[0], BatchFeature):
+                image = [img["pixel_values"] for img in image]
+            if image and isinstance(image[0], dict) and "pixel_values" in image[0]:
+                image = [img["pixel_values"] for img in image]
+            if image and isinstance(image[0], torch.Tensor) and image[0].ndim == 4 and image[0].shape[0] == 1:
+                image = [img[0] for img in image]
+
+            pil_images = [transforms.functional.to_pil_image(img, mode="RGB") for img in image]
+            if len(pil_images) == 1:
+                return pil_images[0]
+
+            # LLaVA-1.5 expects a single image. For multi-image MedXpertQA
+            # samples, place images side by side on a shared canvas.
+            target_height = max(img.height for img in pil_images)
+            resized = []
+            total_width = 0
+            for img in pil_images:
+                if img.height != target_height:
+                    new_width = max(1, int(img.width * target_height / img.height))
+                    img = img.resize((new_width, target_height), Image.BICUBIC)
+                resized.append(img)
+                total_width += img.width
+
+            canvas = Image.new("RGB", (total_width, target_height), color=(255, 255, 255))
+            x_offset = 0
+            for img in resized:
+                canvas.paste(img, (x_offset, 0))
+                x_offset += img.width
+            return canvas
+
+        return transforms.functional.to_pil_image(image, mode="RGB")
+
     @property
     def lengths(self):
         length_list = []
@@ -295,30 +341,34 @@ class LLaVADataset(Dataset):
         answer = sources["label"]
         prompt_template = sources["prompt_template"]
 
-        image = transforms.functional.to_pil_image(image, mode="RGB")
+        image = self._merge_images_for_llava(image)
 
         if self.args.image_aspect_ratio == "pad":
+            if isinstance(image, torch.Tensor):
+                image = image
+            else:
 
-            def expand2square(pil_img, background_color):
-                width, height = pil_img.size
-                if width == height:
-                    return pil_img
-                elif width > height:
-                    result = Image.new(pil_img.mode, (width, width), background_color)
-                    result.paste(pil_img, (0, (width - height) // 2))
-                    return result
-                else:
-                    result = Image.new(pil_img.mode, (height, height), background_color)
-                    result.paste(pil_img, ((height - width) // 2, 0))
-                    return result
+                def expand2square(pil_img, background_color):
+                    width, height = pil_img.size
+                    if width == height:
+                        return pil_img
+                    elif width > height:
+                        result = Image.new(pil_img.mode, (width, width), background_color)
+                        result.paste(pil_img, (0, (width - height) // 2))
+                        return result
+                    else:
+                        result = Image.new(pil_img.mode, (height, height), background_color)
+                        result.paste(pil_img, ((height - width) // 2, 0))
+                        return result
 
-            image = expand2square(image, tuple(int(x * 255) for x in self.image_processor.image_mean))
-            image = self.image_processor.preprocess(image, return_tensors="pt")["pixel_values"][0]
+                image = expand2square(image, tuple(int(x * 255) for x in self.image_processor.image_mean))
+                image = self.image_processor.preprocess(image, return_tensors="pt")["pixel_values"][0]
         else:
-            image = self.image_preprocess(image, return_tensors="pt")["pixel_values"][0]
+            if not isinstance(image, torch.Tensor):
+                image = self.image_processor.preprocess(image, return_tensors="pt")["pixel_values"][0]
 
         query = query.replace(self.model_constants.DEFAULT_IMAGE_TOKEN, "").strip()
-        query = prompt_template.format(query) + "/n" + self.model_constants.DEFAULT_IMAGE_TOKEN
+        query = prompt_template.format(query) + "\n" + self.model_constants.DEFAULT_IMAGE_TOKEN
         sources = preprocess_multimodal(self.args, query, answer, self.model_constants)
 
         data_dict = preprocess(self.args, sources, self.tokenizer, self.model_constants, has_image=image is not None)

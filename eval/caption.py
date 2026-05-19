@@ -79,4 +79,5 @@ class CaptionEvalEngine(EvalEngine):
                 self.metric_logger.meters[metric].update(eval(metric), n=1)
 
         if self.args.save_pred:
-            self.records.append({"image_path": image_path, "caption": caption, "prediciton": output})
+            trace = model.get_last_trace() if hasattr(model, "get_last_trace") else None
+            self.records.append({"image_path": image_path, "caption": caption, "prediciton": output, "trace": trace})

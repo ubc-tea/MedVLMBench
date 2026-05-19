@@ -2,11 +2,13 @@ import os
 import shutil
 import warnings
 import torch
+from torchvision.transforms.functional import to_pil_image
 import transformers
 from transformers import AutoTokenizer, AutoModelForCausalLM, AutoConfig, BitsAndBytesConfig, LlamaForCausalLM
 from model.release.llava.model import LlavaLlamaForCausalLM, LlavaMptForCausalLM, LlavaMistralForCausalLM
 from model.release.llava.conversation import conv_templates, default_conversation
 from model.release.llava.mm_utils import tokenizer_image_token, process_images, get_model_name_from_path
+
 
 from model.chat import ChatMetaModel
 from utils.utils import maybe_zero_3
@@ -528,9 +530,23 @@ class LLaVA(ChatMetaModel):
         self.image_processor_callable = ImageProcessorCallable(image_processor, model.config)
         self.context_len = context_len
 
-    def infer_vision_language(self, image, qs, temperature=0, image_size=None):
+    def infer_vision_language(
+        self,
+        image,
+        qs,
+        image_size=None,
+        temperature=0,
+    ):
+        if temperature is None:
+            temperature = 0
         # Model inference for vision-language tasks
         # TODO: Make it work for a batch
+        if type(image) is list:
+            assert len(image) == 1, f"LLaVA-1.5 only support single image input, while got {len(image)}."
+            image = image[0]
+
+        image = to_pil_image(image)
+
         qs = qs.replace(self.constants.DEFAULT_IMAGE_TOKEN, "").strip()
         if self.model.config.mm_use_im_start_end:
             qs = (
@@ -560,10 +576,14 @@ class LLaVA(ChatMetaModel):
         else:
             image_tensor = image
 
+        projector = self.model.get_model().mm_projector
+        projector_dtype = next(projector.parameters()).dtype
+        image_tensor = image_tensor.to(device=self.model.device, dtype=projector_dtype, non_blocking=True)
+
         with torch.inference_mode():
             output_ids = self.model.generate(
                 input_ids,
-                images=image_tensor.unsqueeze(0).half().cuda(),
+                images=image_tensor.unsqueeze(0),
                 image_sizes=[image_size],
                 do_sample=True if temperature > 0 else False,
                 temperature=temperature,

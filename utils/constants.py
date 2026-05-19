@@ -3,7 +3,18 @@ TASKS = ["vqa", "caption", "diagnosis"]
 
 
 # models
-CLIP_MODELS = ["BLIP", "BLIP2-2.7b", "BioMedCLIP", "CLIP", "MedCLIP", "PMCCLIP", "PLIP", "MedSigLIP", "PubMedCLIP", "SigLIP"]
+CLIP_MODELS = [
+    "BLIP",
+    "BLIP2-2.7b",
+    "BioMedCLIP",
+    "CLIP",
+    "MedCLIP",
+    "PMCCLIP",
+    "PLIP",
+    "MedSigLIP",
+    "PubMedCLIP",
+    "SigLIP",
+]
 
 LANGUAGE_MODELS = [
     "LLaVA-1.5",
@@ -27,7 +38,7 @@ MODELS = CLIP_MODELS + LANGUAGE_MODELS
 
 
 # datasets
-VQA_DATASETS = ["SLAKE", "PathVQA", "VQA-RAD", "Harvard-FairVLMed10k"]
+VQA_DATASETS = ["SLAKE", "PathVQA", "VQA-RAD", "Harvard-FairVLMed10k", "MedXpertQA", "OmniMedVQA"]
 CAPTION_DATASETS = ["HarvardFairVLMed10k", "MIMIC_CXR"]
 DIAGNOSIS_DATASETS = [
     "PneumoniaMNIST",

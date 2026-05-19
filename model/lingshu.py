@@ -1,12 +1,14 @@
+import os
+import warnings
 from transformers import Qwen2_5_VLForConditionalGeneration, AutoProcessor
 from qwen_vl_utils import process_vision_info
 import torch
+from peft import PeftModel
 from torch.utils.data import Dataset
 from torch.nn.utils.rnn import pad_sequence
 from PIL import Image
 from torchvision.transforms.functional import to_pil_image
 from model.chat import ChatMetaModel
-
 
 
 def _to_pil(img: Image.Image | torch.Tensor | str):
@@ -38,12 +40,22 @@ class Lingshu(ChatMetaModel):
         torch_dtype: str | torch.dtype = "auto",
         **kwargs,
     ):
+        load_path = model_path
+        if getattr(self.args, "model_base", None):
+            load_path = self.args.model_base
+
         self.model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
-            model_path,
+            load_path,
             device_map=device_map,
             torch_dtype=torch_dtype,
         )
-        self.processor = AutoProcessor.from_pretrained(model_path)
+
+        if getattr(self.args, "model_base", None):
+            self.model = PeftModel.from_pretrained(self.model, model_path)
+            self.processor = AutoProcessor.from_pretrained(model_path)
+        else:
+            self.processor = AutoProcessor.from_pretrained(model_path)
+
         self.tokenizer = self.processor.tokenizer
 
 
@@ -123,83 +135,81 @@ class Lingshu(ChatMetaModel):
         # 8) update context length
         self.context_len = getattr(self.model.model.config, "max_position_embeddings", self.context_len)
 
-    def _build_messages(self, image: Image.Image | str | None, text: str):
-        """
-        Build the messages list in the format expected by
-        `processor.apply_chat_template`.
-        """
-        if image is None:
-
-            return [{"role": "user", "content": text}]
+    def infer_vision_language(self, image, qs, image_size=None, temperature=None):
+        context_images = self._load_context_images()
+        if context_images:
+            image_contents = [{"type": "image", "image": img, "resized_height": 224, "resized_width": 224} for img in context_images]
         else:
-            return [
-                {
-                    "role": "user",
-                    "content": [
-                        {"type": "image", "image": image, "resized_height": 224, "resized_width": 224},
-                        {"type": "text",  "text": text},
-                    ],
-                }
+            images = image if isinstance(image, list) else [image]
+            image_contents = [
+                {"type": "image", "image": _to_pil(img), "resized_height": 224, "resized_width": 224}
+                for img in images
             ]
 
-    @torch.inference_mode()
-    def infer_vision_language(self, image, qs, temperature: float = 0.2, **gen_kwargs):
-        """
-        Single-image VL-QA / captioning.  Accepts PIL.Image, filepath or URL (the
-        processor handles URLs transparently).
-        """
-        image = _to_pil(image)
-        messages = self._build_messages(image, qs)
+        messages = [{"role": "user", "content": [*image_contents, {"type": "text", "text": qs}]}]
 
-        chat_text = self.processor.apply_chat_template(
-            messages, tokenize=False, add_generation_prompt=True
-        ) # 'Can you provide a medical report for this image? '
-
+        text = self.processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
         image_inputs, video_inputs = process_vision_info(messages)
 
         inputs = self.processor(
-            text=[chat_text],
+            text=[text],
             images=image_inputs,
             videos=video_inputs,
             padding=True,
             return_tensors="pt",
-        ).to(self.model.device)
-
-        gen_ids = self.model.generate(
-            **inputs,
-            max_new_tokens=gen_kwargs.get("max_new_tokens", 256),
-            temperature=temperature,
         )
 
-        answer_ids = gen_ids[:, inputs.input_ids.shape[-1] :]
-        answer = self.processor.batch_decode(
-            answer_ids, skip_special_tokens=True, clean_up_tokenization_spaces=False
-        )[0]
-        return answer.strip()
+        inputs = inputs.to(self.device)
 
-    @torch.inference_mode()
-    def infer_language(self, qs, temperature: float = 0.7, **gen_kwargs):
-        """
-        Text-only inference.  We still let Qwen format the prompt so that system /
-        assistant roles work in the same way as multimodal chats.
-        """
-        messages = self._build_messages(None, qs)
-        chat_text = self.processor.apply_chat_template(
-            messages, tokenize=False, add_generation_prompt=True
-        )
-        inputs = self.processor(
-            text=[chat_text], padding=True, return_tensors="pt"
-        ).to(self.model.device)
+        max_new_tokens = getattr(self.args, "gen_max_new_tokens", None)
+        if max_new_tokens is None:
+            max_new_tokens = 192 if getattr(self.args, "usage", None) == "ucagent" else 512
 
-        gen_ids = self.model.generate(
-            **inputs,
-            max_new_tokens=gen_kwargs.get("max_new_tokens", 512),
-            temperature=temperature,
+        if temperature is None:
+            generated_ids = self.model.generate(
+                **inputs,
+                max_new_tokens=max_new_tokens,
+                use_cache=True,
+            )
+        else:
+            generated_ids = self.model.generate(
+                **inputs,
+                max_new_tokens=max_new_tokens,
+                do_sample=True if temperature > 0 else False,
+                temperature=temperature,
+                use_cache=True,
+            )
+
+        generated_ids_trimmed = [out_ids[len(in_ids) :] for in_ids, out_ids in zip(inputs.input_ids, generated_ids)]
+        output_text = self.processor.batch_decode(
+            generated_ids_trimmed, skip_special_tokens=True, clean_up_tokenization_spaces=False
         )
-        answer_ids = gen_ids[:, inputs.input_ids.shape[-1] :]
-        return self.processor.batch_decode(
-            answer_ids, skip_special_tokens=True, clean_up_tokenization_spaces=False
-        )[0].strip()
+
+        return output_text[0].strip()
+
+    def _load_context_images(self):
+        context = getattr(self, "_inference_context", None) or {}
+        image_paths = context.get("image_paths")
+        self._inference_context = {}
+
+        if not image_paths:
+            return []
+
+        if isinstance(image_paths, str):
+            image_paths = [p for p in image_paths.split(";") if p]
+
+        loaded_images = []
+        for image_path in image_paths:
+            candidate_path = image_path
+            if not os.path.isabs(candidate_path):
+                base_dir = getattr(self.args, "image_path", "") or ""
+                candidate_path = os.path.join(base_dir, image_path)
+
+            with Image.open(candidate_path) as img:
+                loaded_images.append(img.convert("RGB"))
+
+        return loaded_images
+
 
     def save(self, output_folder, trainer=None):
         self.model.save_pretrained(output_folder)

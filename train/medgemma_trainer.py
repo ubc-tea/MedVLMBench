@@ -4,6 +4,7 @@ from torchvision.transforms.functional import to_pil_image
 
 
 class MedGemmaTrainer:
+    # reference: https://colab.research.google.com/github/google-health/medgemma/blob/main/notebooks/fine_tune_with_hugging_face.ipynb#scrollTo=QRPETOTGV81b
     def __init__(self, args, model, dataset) -> None:
         self.args = args
 
@@ -13,6 +14,9 @@ class MedGemmaTrainer:
 
             for subject in subjects:
                 image = subject["image"]
+                if type(image) is not list:
+                    image = [image]
+                num_images = len(image)
                 qs = subject["query"]
                 answer = subject["label"]
                 prompt_template = subject["prompt_template"]
@@ -28,8 +32,8 @@ class MedGemmaTrainer:
                         "role": "user",
                         "content": [
                             {"type": "text", "text": prompt},
-                            {"type": "image"},
-                        ],
+                        ]
+                        + [{"type": "image"} for _ in range(len(num_images))],
                     },
                     {
                         "role": "assistant",
@@ -42,7 +46,7 @@ class MedGemmaTrainer:
                     },
                 ]
 
-                images.append([to_pil_image(image).convert("RGB")])
+                images.append([to_pil_image(x).convert("RGB") for x in image])
                 texts.append(
                     model.processor.apply_chat_template(messages, add_generation_prompt=False, tokenize=False).strip()
                 )

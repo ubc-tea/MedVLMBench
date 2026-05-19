@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 import requests
 import torch
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Subset
 
 from eval.metrics import MetricLogger
 
@@ -30,26 +30,53 @@ class EvalEngine:
         self.records = []
         self.logger = logger
 
-    def evaluate(self, args, model):
-        data_loader = DataLoader(self.dataset, batch_size=1)
+    def evaluate(self, args, model, indices=None, save_outputs=True):
+        # Keep samples intact so metadata like image_paths (possibly multi-image) is preserved.
+        dataset = self.dataset if indices is None else Subset(self.dataset, indices)
+        max_samples = getattr(args, "max_samples", None)
+        if max_samples is not None:
+            dataset = Subset(dataset, list(range(min(max_samples, len(dataset)))))
+        data_loader = DataLoader(dataset, batch_size=1, collate_fn=lambda batch: batch[0])
+        header = getattr(args, "eval_header", "Test:")
 
         self.init_metric_logger()
 
         with torch.inference_mode():
-            for batch in self.metric_logger.log_every(data_loader, args.eval_print_freq, header="Test:"):
-                # subject = [x[0] for x in batch]
-                subject = {k: v[0] for k, v in batch.items()}
-                self.evaluate_subject(subject, model)
+            for subject in self.metric_logger.log_every(data_loader, args.eval_print_freq, header=header):
+                try:
+                    self.evaluate_subject(subject, model)
+                except KeyboardInterrupt:
+                    raise
+                except Exception as exc:
+                    self.logger.exception("Skipping sample due to evaluation error: %s", exc)
+                    self.record_failure(subject, exc)
 
         self.metric_logger.synchronize_between_processes()
 
-        self.save(self.args.output_dir, model)
+        if save_outputs:
+            self.save(self.args.output_dir, model)
 
         results = {k: meter.global_avg for k, meter in self.metric_logger.meters.items()}
 
         self.logger.info("\nEvaluation results:\n" + "\n".join("{} {:.3f}".format(k, v) for k, v in results.items()))
 
         return results
+
+    def export_state(self, model):
+        return {
+            "model_name": model.name,
+            "model_type": model.model_type,
+            "dataset_name": self.dataset.name,
+            "dataset_modality": self.dataset.modality,
+            "records": self.records,
+            "meters": {
+                name: {
+                    "total": meter.total,
+                    "count": meter.count,
+                }
+                for name, meter in self.metric_logger.meters.items()
+            },
+        }
 
     def evaluate_subject(self, subject, model):
         pass
@@ -90,3 +117,29 @@ class EvalEngine:
         if self.args.save_pred:
             with open(os.path.join(path, "predictions.json"), "w") as fp:
                 json.dump(self.records, fp, indent=4)
+
+    def record_failure(self, subject, exc):
+        if not self.args.save_pred:
+            return
+
+        def _safe_value(value):
+            if isinstance(value, (str, int, float, bool)) or value is None:
+                return value
+            if isinstance(value, (list, tuple)):
+                return [_safe_value(v) for v in value]
+            if isinstance(value, dict):
+                return {str(k): _safe_value(v) for k, v in value.items()}
+            return str(value)
+
+        record = {
+            "image_path": _safe_value(subject.get("image_path")),
+            "prediction": "",
+            "error": str(exc),
+            "status": "failed",
+        }
+
+        for key in ["question_type", "query", "qs", "label", "answer", "caption", "prompt_template", "image_paths"]:
+            if key in subject:
+                record[key] = _safe_value(subject.get(key))
+
+        self.records.append(record)

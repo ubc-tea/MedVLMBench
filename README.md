@@ -1,6 +1,33 @@
-# MedVLMBench: A Unified Benchmark for Generalist and Specialist Medical Vision-Language Models
+# MedVLMBench: A Unified Benchmark for Medical Vision-Language Models
 
-MedVLMBench is the first unified benchmark for systematically evaluating generalist and medical-specialist Vision-Language Models (VLMs). This repository provides the code and resources to reproduce the experiments and extend the benchmark. It provides the implementation for paper "Can Generalist Vision Language Models (VLMs) Rival Specialist Medical VLMs? Benchmarking and Strategic Insights"
+<p align="center">
+  <a href="https://arxiv.org/abs/2506.17337"><img src="https://img.shields.io/badge/arXiv-2506.17337-b31b1b.svg" alt="arXiv"></a>
+  <a href="https://github.com/ubc-tea/MedVLMBench/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License"></a>
+  <img src="https://img.shields.io/badge/Python-3.8%2B-green.svg" alt="Python">
+  <img src="https://img.shields.io/github/stars/ubc-tea/MedVLMBench?style=social" alt="Stars">
+</p>
+
+**MedVLMBench** is the first unified benchmark for systematically evaluating generalist and medical-specialist Vision-Language Models (VLMs). It covers **30+ models**, **14 datasets**, and **3 task types** (VQA, diagnosis, captioning) across radiology, pathology, dermatology, and ophthalmology — with support for off-the-shelf inference, linear probing, LoRA fine-tuning, and multi-agent reasoning.
+
+---
+
+## Highlights
+
+- **30+ models supported** — CLIP-based (BioMedCLIP, MedCLIP, PLIP, SigLIP …) and generative (LLaVA, MedGemma, Qwen2-VL, InternVL3, Gemini 2.5 Pro, o3 …)
+- **14 medical datasets** — SLAKE, PathVQA, VQA-RAD, MedXpertQA, OmniMedVQA, PneumoniaMNIST, HAM10000, CheXpert, MIMIC-CXR and more
+- **3 evaluation tasks** — Visual Question Answering (VQA), Diagnostic Classification, Report Captioning
+- **Flexible fine-tuning** — off-the-shelf (OTS), linear probing (LP), LoRA, and full fine-tuning
+- **Multi-agent reasoning** — MDAgent and UCAgent wrappers for chain-of-thought and debate-style inference
+- **Reproducible results** — full CLI + Jupyter notebook tutorials included
+
+## News
+
+- **2025-06** Paper released on arXiv ([2506.17337](https://arxiv.org/abs/2506.17337))
+- **2025-06** Added MedXpertQA and OmniMedVQA benchmark datasets
+- **2025-06** Added MDAgent (multi-specialist reasoning) and UCAgent (hierarchical debate) wrappers
+- **2025-06** Added InternVL3, Gemma3, Qwen2-VL, Qwen2.5-VL, Lingshu, o3, Gemini 2.5 Pro
+
+---
 
 ## Table of Contents
 
@@ -16,55 +43,43 @@ MedVLMBench is the first unified benchmark for systematically evaluating general
   - [Command-Line Interface](#command-line-interface)
 - [Abstract](#abstract)
 - [Citation](#citation)
-- [License](#license)
 
-
-## Abstract
-
-> **Background:** Vision–Language Models (VLMs) have shown promise in automating image diagnosis and interpretation in clinical settings. However, developing specialist medical VLMs requires substantial computational resources and carefully curated datasets, and it remains unclear under which conditions generalist and specialist medical VLMs each perform best.
->
-> **Methods:** This paper introduces MedVLMBench, the first unified benchmark and evaluation framework designed for direct, fair comparisons of paired generalist and specialist medical VLMs from the same model families. Our benchmark is comprehensive, assessing 18 models across radiology, pathology, dermatology, and ophthalmology on 144 diagnostic and 72 visual-question answering (VQA) tasks. MedVLMBench focusing on assessing both in-domain (ID) and out-of-domain (OOD) performance, with off-the-shelf and parameter-efficient fine-tuning (e.g., linear probing, LoRA). Diagnostic classification tasks were evaluated using AUROC, while VQA tasks were assessed with BLEU-1, ROUGE-L, Exact Match, F1 Score, and GPT-based semantic scoring, covering both open- and closed-ended formats.
->
-> **Results:** As expected, off-the-shelf specialist medical VLMs generally outperformed generalist VLMs on ID tasks given their pretraining. However, with lightweight fine-tuning, generalist VLMs achieved superior performance in most of ID task evaluations and demonstrated better generalization on OOD tasks in the majority of comparisons. Fine-tuning required only updating small amounts of parameters associated with full medical pretraining. In contrast, fine-tuned specialist medical VLMs do not show comparable performance even with the same level of fine-tuning.
->
-> **Conclusions:** This study highlights the complementary strengths of specialist medical and generalist VLMs. Specialists remain valuable in modality-aligned use cases, but we find that efficiently fine-tuned generalist VLMs can achieve comparable or even superior performance in most tasks, particularly when transferring to unseen or rare OOD medical modalities. These results suggest that generalist VLMs, rather than being constrained by their lack of specialist medical pretraining, may offer a scalable and cost-effective pathway for advancing clinical AI development.
-
+---
 
 ## Getting Started
 
 ### Prerequisites
 
-During develop this benchmark, we find it is impossible to setup one environemtn to launch all _generative VLMs_. Those VLMs are rapidly involved with the developing environemtn and needs to setup the seperate environement for them. Below, we provide the environment for setting up the _contrastive VLMs_.
-
-Ensure you have an environment with Python and the necessary dependencies. You can set up a conda environment using the provided `environment.yml` file:
+Python 3.8+ with PyTorch. Install dependencies via pip:
 
 ```bash
-conda env create --name medvlmbench
-conda activate medvlmbench
 pip install -r requirements.txt
 ```
 
-**You can refer to the colab tutorial below to check the environemtn requirements.
+Or use conda:
+
+```bash
+conda env create -f environment.yml
+conda activate medvlmbench
+```
 
 ### Installation
 
-Clone the repository:
-
 ```bash
-git clone https://github.com/Nanboy-Ronan/MedVLMBench.git
+git clone https://github.com/ubc-tea/MedVLMBench.git
 cd MedVLMBench
+pip install -r requirements.txt
 ```
 
 ### Download Datasets and Models
 
-All pretrained models should be stored under `MedVLMBench/pretrained_models`, and all data should be stored under `MedVLMBench/data`.
+All pretrained models should be stored under `MedVLMBench/pretrained_models`, and all data under `MedVLMBench/data`.
 
 ```bash
-mkdir pretrained_models
-mkdir data
+mkdir pretrained_models data
 ```
 
-**Example: Downloading LLaVA**
+**Example: LLaVA-1.5**
 
 ```bash
 cd pretrained_models
@@ -72,248 +87,248 @@ git clone https://huggingface.co/liuhaotian/llava-v1.5-7b
 cd ..
 ```
 
-## Available Models and Datasets
-This code base mainly supports the image diagnostics and the VQA tasks. It also supports image captioning, which does not report the results in the paper.
-
-<details>
-<summary><b>Supported Datasets</b></summary>
-
-| Dataset | Type | Status |
-|---|---|---|
-| SLAKE | VQA | Done |
-| PathVQA | VQA | Done |
-| VQA-RAD | VQA | Done |
-| FairVLMed | VQA | Done |
-| PneumoniaMNIST | Diagnosis | Done |
-| BreastMNIST | Diagnosis | Done |
-| DermaMNIST | Diagnosis | Done |
-| Camelyon17 | Diagnosis | Done |
-| HAM10000 | Diagnosis | Done |
-| Drishti | Diagnosis | Done |
-| ChestXray | Diagnosis | Done |
-| GF3300 | Diagnosis | Done |
-| CheXpert | Diagnosis | Done |
-| PAPILA | Diagnosis | Done |
-| FairVLMed | Diagnosis | Done |
-
-</details>
-
-<details>
-<summary><b>Supported Models</b></summary>
-
-| Model | Type | Evaluation | Training |
-|---|---|---|---|
-| o3 | VQA | Done | NA |
-| Gemini 2.5 Pro | VQA | Done | NA |
-| InternVL3 | VQA | Done | Coming Soon |
-| LLaVA-1.5 | VQA | Done | Done |
-| LLaVA-Med | VQA | Done | Done |
-| Gemma3 | VQA | Done | Coming Soon |
-| MedGemma | VQA | Done | Done |
-| Qwen2-VL | VQA | Done | Coming Soon |
-| Qwen25-VL | VQA | Done | Coming Soon |
-| NVILA | VQA | Done | Done |
-| VILA-M3 | VQA | Done | Done |
-| VILA1.5 | VQA | Done | Done |
-| Lingshu | VQA | Done | Done |
-| BLIP | Diagnosis/VQA | Done | Done |
-| BLIP2 | Diagnosis/VQA | Done | Done |
-| XrayGPTVQA | Diagnosis/VQA | Done | Done |
-| BioMedCLIP | Diagnosis | Done | Done |
-| CLIP | Diagnosis | Done | Done |
-| MedCLIP | Diagnosis | Done | Done |
-| PMCCLIP | Diagnosis | Done | Done |
-| PLIP | Diagnosis | Done | Done |
-| MedSigLIP | Diagnosis | Done | Done |
-| PubMedCLIP | Diagnosis | Done | Done |
-| SigLIP | Diagnosis | Done | Done |
-
-</details>
-
-## Usage
-
-`run_train.py` is the major entry for training all models (including the lightweight adaptation).
-`run_eval.py` is the major entry for off the shelf evaluation of all models.
-
-### Notebook Tutorials
-
-We offer some examples of how to use our package through the notebook.
-
-| Feature | Notebook |
-|---|---|
-| Off-the-shelf Diagnosis | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Nanboy-Ronan/MedVLMBench/blob/main/examples/MedVLMBench_OTS_Diagnosis.ipynb) |
-| Off-the-shelf VQA | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Nanboy-Ronan/MedVLMBench/blob/main/examples/MedVLMBench_OTS_VQA.ipynb) |
-| LP Diagnosis | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Nanboy-Ronan/MedVLMBench/blob/main/examples/MedVLMBench_LP_Diagnosis.ipynb) |
-| LoRA Adaptation VQA | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Nanboy-Ronan/MedVLMBench/blob/main/examples/MedVLMBench_LoRA_VQA.ipynb) |
-
-### Command-Line Interface
-
-This section provides detailed documentation for the command-line arguments used in `run_eval.py` and `run_train.py`.
-
-#### `run_eval.py`
-
-This script is used for evaluating the performance of a trained model on a given dataset.
-
-**Usage:**
+**Example: MedXpertQA**
 
 ```bash
-python run_eval.py [OPTIONS]
+cd data
+git clone https://huggingface.co/datasets/TsinghuaC3I/MedXpertQA
 ```
 
-**Arguments:**
-
-| Argument | Type | Default | Description |
-|---|---|---|---|
-| `--task` | str | `vqa` | The task to perform. Choices: `vqa`, `diagnosis`, `caption`. |
-| `--dataset` | str | `SLAKE` | The dataset to use for evaluation. |
-| `--image_path` | str | | The local path to the directory containing the images. |
-| `--split` | str | `all` | The dataset split to use for evaluation (e.g., `test`, `val`). |
-| `--seed` | int | `0` | The random seed for reproducibility. |
-| `--print_freq` | int | `10` | The frequency of logging during evaluation. |
-| `--save_pred` | bool | `False` | Whether to save the model's predictions. |
-| `--gpt_eval` | bool | `False` | Whether to use GPT for evaluation (for VQA tasks). |
-| `--hash_id` | str | | A unique hash ID for the experiment. |
-| `--model` | str | `BLIP` | The model to evaluate. |
-| `--context_length` | int | `77` | The context length for the model. |
-| `--model_path` | str | | The path to the pretrained model checkpoint. |
-| `--model_base` | str | | The base model name. |
-| `--usage` | str | | The usage mode for the model. |
-| `--device` | str | `cuda` | The device to use for evaluation (e.g., `cuda`, `cpu`). |
-| `--cache_dir` | str | | The directory to cache pretrained models and other data. |
-| `--eval_print_freq` | int | `100` | The logging frequency (in steps) during evaluation. |
-| `--exp_path` | str | `./output` | The path to the experiment output directory. |
-| `--wandb_name` | str | `baseline` | The name for the Weights & Biases run. |
-| `--if_wandb` | bool | `False` | Whether to use Weights & Biases for logging. |
-
-**Example:**
+**Example: OmniMedVQA**
 
 ```bash
-python run_eval.py \
---task vqa --dataset SLAKE --split test \
---image_path ./data/SLAKE/imgs \
---model LLaVA-1.5 --model_path ./pretrained_models/llava-v1.5-7b \
---exp_path ./log \
---cache_dir ./cache \
---save_pred
+cd data
+git clone https://huggingface.co/datasets/foreverbeliever/OmniMedVQA
 ```
 
 ---
 
-#### `run_train.py`
+## Available Models and Datasets
 
-This script is used for training or fine-tuning a model on a given dataset.
+### Datasets
 
-**Usage:**
+| Dataset | Task | Modality |
+|---|---|---|
+| SLAKE | VQA | Radiology |
+| PathVQA | VQA | Pathology |
+| VQA-RAD | VQA | Radiology |
+| FairVLMed10k | VQA / Diagnosis / Captioning | Ophthalmology |
+| MedXpertQA | VQA (multi-choice) | Multi-modal |
+| OmniMedVQA | VQA (multi-choice) | Multi-modal |
+| MIMIC-CXR | Captioning | Radiology |
+| PneumoniaMNIST | Diagnosis | Radiology |
+| BreastMNIST | Diagnosis | Radiology |
+| DermaMNIST | Diagnosis | Dermatology |
+| Camelyon17 | Diagnosis | Pathology |
+| HAM10000 | Diagnosis | Dermatology |
+| CheXpert | Diagnosis | Radiology |
+| ChestXray14 | Diagnosis | Radiology |
+| GF3300 | Diagnosis | Ophthalmology |
+| PAPILA | Diagnosis | Ophthalmology |
+| Drishti | Diagnosis | Ophthalmology |
+
+### Models
+
+<details>
+<summary><b>Generative VLMs (VQA / Captioning)</b></summary>
+
+| Model | Evaluation | Training |
+|---|---|---|
+| o3 (OpenAI) | Done | NA |
+| Gemini 2.5 Pro | Done | NA |
+| InternVL3 | Done | Coming Soon |
+| LLaVA-1.5 | Done | Done |
+| LLaVA-Med | Done | Done |
+| Gemma3 | Done | Coming Soon |
+| MedGemma | Done | Done |
+| Qwen2-VL | Done | Coming Soon |
+| Qwen2.5-VL | Done | Coming Soon |
+| NVILA | Done | Done |
+| VILA-M3 | Done | Done |
+| VILA1.5 | Done | Done |
+| Lingshu | Done | Done |
+| XrayGPT | Done | Done |
+| BLIP | Done | Done |
+| BLIP2-2.7b | Done | Done |
+
+</details>
+
+<details>
+<summary><b>Contrastive / CLIP-based Models (Diagnosis)</b></summary>
+
+| Model | Evaluation | Training |
+|---|---|---|
+| BioMedCLIP | Done | Done |
+| CLIP | Done | Done |
+| MedCLIP | Done | Done |
+| PMCCLIP | Done | Done |
+| PLIP | Done | Done |
+| MedSigLIP | Done | Done |
+| PubMedCLIP | Done | Done |
+| SigLIP | Done | Done |
+
+</details>
+
+---
+
+## Usage
+
+`run_eval.py` is the main entry point for evaluation. `run_train.py` is the main entry point for fine-tuning.
+
+### Notebook Tutorials
+
+| Feature | Notebook |
+|---|---|
+| Off-the-shelf Diagnosis | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ubc-tea/MedVLMBench/blob/main/examples/MedVLMBench_OTS_Diagnosis.ipynb) |
+| Off-the-shelf VQA | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ubc-tea/MedVLMBench/blob/main/examples/MedVLMBench_OTS_VQA.ipynb) |
+| LP Diagnosis | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ubc-tea/MedVLMBench/blob/main/examples/MedVLMBench_LP_Diagnosis.ipynb) |
+| LoRA Adaptation VQA | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ubc-tea/MedVLMBench/blob/main/examples/MedVLMBench_LoRA_VQA.ipynb) |
+
+### Command-Line Interface
+
+#### Off-the-shelf Evaluation
+
+<details>
+<summary><b>Diagnosis (zero-shot CLIP)</b></summary>
 
 ```bash
-python run_train.py [OPTIONS]
+python run_eval.py \
+  --task diagnosis --usage clip-zs --dataset PAPILA --split test \
+  --image_path ./data \
+  --exp_path ./log \
+  --model CLIP --model_path "original_pretrained" \
+  --save_pred \
+  --cache_dir ./cache
 ```
 
-**Arguments:**
+</details>
 
-| Argument | Type | Default | Description |
-|---|---|---|---|
-| `task` | str | `vqa` | The task to perform. Choices: `vqa`, `diagnosis`, `caption`. |
-| `dataset` | str | `SLAKE` | The dataset to use for training. |
-| `peft` | str | | The parameter-efficient fine-tuning method to use. |
-| `image_path` | str | | The local path to the directory containing the images. |
-| `image_aspect_ratio` | str | `pad` | The aspect ratio handling for images. |
-| `optim` | str | `adamw_torch` | The optimizer to use for training. |
-| `bits` | int | `16` | The number of bits to use for quantization. |
-| `tune_modules` | str | `VML` | The modules to tune during training (V: vision, M: multimodal, L: language). |
-| `lora_enable` | bool | `False` | Whether to enable LoRA for fine-tuning. |
-| `lora_r` | int | `128` | The rank for LoRA. |
-| `lora_alpha` | int | `256` | The alpha parameter for LoRA. |
-| `lora_dropout` | float | `0.05` | The dropout rate for LoRA. |
-| `lora_weight_path` | str | | The path to LoRA weights. |
-| `lora_bias` | str | `none` | The bias to use for LoRA. |
-| `num_train_epochs` | int | | The number of training epochs. |
-| `learning_rate` | float | `3e-5` | The learning rate for training. |
-| `eval_print_freq` | int | `100` | The frequency of logging during evaluation. |
-| `save_pred` | bool | `False` | Whether to save the model's predictions. |
-| `save_total_limit` | int | `2` | The maximum number of checkpoints to save. |
-| `mm_projector_lr` | float | | The learning rate for the multimodal projector. |
-| `remove_unused_columns` | bool | `False` | Whether to remove unused columns from the dataset. |
-| `mpt_attn_impl` | str | `triton` | The implementation for MPT attention. |
-| `model_max_length` | int | `2048` | The maximum sequence length for the model. |
-| `double_quant` | bool | `True` | Whether to use double quantization. |
-| `quant_type` | str | `nf4` | The quantization data type to use. |
-| `group_by_modality_length` | bool | `False` | Whether to group inputs by modality length. |
-| `deepspeed_plugin` | str | | The DeepSpeed plugin to use. |
-| `model` | str | `LLaVA` | The model to train. |
-| `version` | str | `v1` | The model version. |
-| `context_length` | int | `77` | The context length for the model. |
-| `model_path` | str | | The path to the pretrained model checkpoint. |
-| `model_base` | str | | The base model name. |
-| `freeze_backbone` | bool | `False` | Whether to freeze the backbone of the model. |
-| `usage` | str | | The usage mode for the model. |
-| `tune_mm_mlp_adapter` | bool | `False` | Whether to tune the multimodal MLP adapter. |
-| `freeze_mm_mlp_adapter` | bool | `False` | Whether to freeze the multimodal MLP adapter. |
-| `mm_vision_select_layer` | int | `-2` | The layer to select from the vision encoder. |
-| `pretrain_mm_mlp_adapter` | str | | The path to a pretrained multimodal MLP adapter. |
-| `mm_projector_type` | str | `mlp2x_gelu` | The type of multimodal projector to use. |
-| `mm_use_im_start_end` | bool | `False` | Whether to use start and end tokens for images. |
-| `mm_use_im_patch_token` | bool | `True` | Whether to use patch tokens for images. |
-| `mm_patch_merge_type` | str | `flat` | The patch merging type to use. |
-| `mm_vision_select_feature` | str | `patch` | The feature to select from the vision encoder. |
-| `longvila_sampler` | bool | `False` | Whether to use the LongVILA sampler. |
-| `seq_parallel_size` | int | `-1` | The sequence parallel size. |
-| `vision_tower_lr` | float | | The learning rate for the vision tower. |
-| `num_time_tokens` | int | `0` | The number of time tokens to use. |
-| `time_token_format` | str | `<t{t}>` | The format for time tokens. |
-| `soft_ce_std` | float | `1.0` | The standard deviation for soft cross-entropy. |
-| `max_num_images` | int | `6` | The maximum number of images to use. |
-| `debug_e2e` | bool | `False` | Whether to enable end-to-end debugging. |
-| `cache_dir` | str | | The directory to cache pretrained models and other data. |
-| `if_wandb` | bool | `False` | Whether to use Weights &amp; Biases for logging. |
-| `wandb_name` | str | | The name for the Weights &amp; Biases run. |
-| `split` | str | `train` | The dataset split to use for training. |
+<details>
+<summary><b>VQA (generative model)</b></summary>
 
-**Example:**
+```bash
+python run_eval.py \
+  --task vqa --dataset SLAKE --split test \
+  --image_path ./data/SLAKE/imgs \
+  --model LLaVA-1.5 --model_path ./pretrained_models/llava-v1.5-7b \
+  --exp_path ./log \
+  --cache_dir ./cache \
+  --save_pred
+```
+
+</details>
+
+<details>
+<summary><b>MDAgent multi-specialist reasoning</b></summary>
+
+Wrap any supported VLM backbone with multi-agent reasoning by adding `--usage mdagent`:
+
+```bash
+python run_eval.py \
+  --task vqa --dataset VQA-RAD --split test \
+  --image_path ./data \
+  --model Qwen2-VL \
+  --model_path ./pretrained_models/Qwen2-VL-2B-Instruct \
+  --usage mdagent \
+  --mdagent_mode adaptive \
+  --exp_path ./log \
+  --cache_dir ./cache \
+  --save_pred
+```
+
+MDAgent modes: `basic`, `intermediate`, `advanced`, `adaptive` (recommended). When `--save_pred` is set, the output file includes the full reasoning trace per sample.
+
+</details>
+
+<details>
+<summary><b>UCAgent hierarchical debate reasoning</b></summary>
+
+```bash
+python run_eval.py \
+  --task vqa --dataset MedXpertQA --split test \
+  --image_path ./data/MedXpertQA \
+  --model MedGemma \
+  --model_path ./pretrained_models/medgemma-4b-it \
+  --usage ucagent \
+  --exp_path ./log \
+  --cache_dir ./cache \
+  --save_pred
+```
+
+UCAgent runs a 3-level hierarchical diagnosis: two independent expert assessments → senior expert verification → critic-panel debate with leader adjudication.
+
+</details>
+
+#### Fine-tuning
+
+<details>
+<summary><b>Linear probing (diagnosis)</b></summary>
+
+```bash
+python run_train.py \
+  --task diagnosis --usage lp --dataset HAM10000 --split train \
+  --image_path ./data \
+  --output_dir ./log \
+  --model CLIP --model_path not_given \
+  --cache_dir ./cache \
+  --num_train_epochs 50 \
+  --learning_rate 5e-5
+```
+
+Other fine-tuning modes: `img-lora-lp` (LP + image encoder LoRA), `clip-img-lora` (CLIP image encoder LoRA).
+
+</details>
+
+<details>
+<summary><b>LoRA fine-tuning (VQA)</b></summary>
 
 ```bash
 deepspeed run_train.py \
---peft lora --lora_r 128 --lora_alpha 256 --mm_projector_lr 2e-5 \
---deepspeed ./script/zero3.json \
---task vqa --dataset SLAKE \
---model LLaVA-1.5 --version v1 \
---image_path ./data/SLAKE/imgs \
---model_path ./pretrained_models/llava-v1.5-7b \
---mm_projector_type mlp2x_gelu \
---mm_vision_select_layer -2 \
---mm_use_im_start_end False \
---mm_use_im_patch_token False \
---image_aspect_ratio pad \
---group_by_modality_length True \
---bf16 True \
---output_dir ./log \
---cache_dir ./cache \
---num_train_epochs 1 \
---per_device_train_batch_size 8 \
---per_device_eval_batch_size 4 \
---gradient_accumulation_steps 2 \
---evaluation_strategy "no" \
---save_strategy "steps" \
---save_steps 50000 \
---save_total_limit 1 \
---learning_rate 2e-4 \
---weight_decay 0. \
---warmup_ratio 0.03 \
---lr_scheduler_type "cosine" \
---logging_steps 1 \
---tf32 True \
---model_max_length 2048 \
---gradient_checkpointing True \
---dataloader_num_workers 4 \
---tune_modules L
+  --peft lora --lora_r 128 --lora_alpha 256 --mm_projector_lr 2e-5 \
+  --deepspeed ./script/zero3.json \
+  --task vqa --dataset SLAKE \
+  --model LLaVA-1.5 --version v1 \
+  --image_path ./data/SLAKE/imgs \
+  --model_path ./pretrained_models/llava-v1.5-7b \
+  --mm_projector_type mlp2x_gelu \
+  --mm_vision_select_layer -2 \
+  --mm_use_im_start_end False \
+  --mm_use_im_patch_token False \
+  --image_aspect_ratio pad \
+  --group_by_modality_length True \
+  --bf16 True \
+  --output_dir ./log \
+  --cache_dir ./cache \
+  --num_train_epochs 1 \
+  --per_device_train_batch_size 8 \
+  --gradient_accumulation_steps 2 \
+  --learning_rate 2e-4 \
+  --warmup_ratio 0.03 \
+  --lr_scheduler_type cosine \
+  --tune_modules L
 ```
 
+</details>
+
+---
+
+## Abstract
+
+>**Background:** Vision–Language Models (VLMs) have shown promise in automating image diagnosis and interpretation in clinical settings. However, developing medical-specialist VLMs requires substantial computational resources and carefully curated datasets, and it remains unclear under which conditions generalist and medical specialist VLMs each perform best.
+
+>**Methods:** This paper introduces MedVLMBench, the first unified benchmark for systematically evaluating generalist and medical-specialist VLMs. We assessed 18 models spanning contrastive and generative paradigms on 10 publicly available datasets across radiology, pathology, dermatology, and ophthalmology, encompassing 144 diagnostic and 80 VQA settings. MedVLMBench focuses on assessing both in-domain (ID) and out-of-domain (OOD) performance, with off-the-shelf and parameter-efficient fine-tuning (e.g., linear probing, LoRA). Diagnostic classification tasks were evaluated using AUROC, while VQA tasks were assessed with BLEU-1, ROUGE-L, Exact Match, F1 Score, and GPT-based semantic scoring.
+
+>**Results:** Off-the-shelf medical VLMs generally outperformed generalist VLMs on in-domain tasks. However, with lightweight fine-tuning, general-purpose VLMs achieved superior performance in most in-domain evaluations and demonstrated better generalization on out-of-domain tasks. Fine-tuning required only **3% of the parameters** associated with full medical pretraining.
+
+>**Conclusions:** Efficiently fine-tuned generalist VLMs can match or surpass medical-specialist VLMs in most tasks, offering a scalable and cost-effective pathway for clinical AI development.
+
+---
 
 ## Citation
 
 If you find this repository useful, please consider citing our paper:
 
-```
+```bibtex
 @article{zhong2025can,
   title={Can Common VLMs Rival Medical VLMs? Evaluation and Strategic Insights},
   author={Zhong, Yuan and Jin, Ruinan and Li, Xiaoxiao and Dou, Qi},
@@ -321,7 +336,3 @@ If you find this repository useful, please consider citing our paper:
   year={2025}
 }
 ```
-
-## License 
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.

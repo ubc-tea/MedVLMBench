@@ -1,7 +1,7 @@
 import re
 from collections import defaultdict
-import re
 import math
+from typing import Optional, Iterable
 
 
 contractions = {
@@ -231,6 +231,66 @@ def split_sentence(sentence, n):
         if tmp_words:
             words[tmp_words] += 1
     return words
+
+
+def extract_choice_letter(response: str, choices: Iterable[str] = tuple("ABCDE")) -> Optional[str]:
+    """
+    Extract a single-letter multi-choice answer (e.g., A/B/C/D/E) from a model response.
+    Supports both uppercase and lowercase letters.
+    """
+    if response is None:
+        return None
+
+    text = response.strip()
+    if not text:
+        return None
+
+    # normalize whitespace
+    t = re.sub(r"\s+", " ", text)
+
+    choices_set = set(c.upper() for c in choices)
+    if not choices_set:
+        return None
+
+    # Helper: validate and normalize
+    def ok(letter: str) -> Optional[str]:
+        u = letter.upper()
+        return u if u in choices_set else None
+
+    # 1) Explicit cues: "answer: c", "final answer is (b)"
+    cue_patterns = [
+        r"(?:final\s+answer|answer\s+is|answer|ans|choice|option)\s*[:\-]?\s*[\(\[]?\s*([A-Za-z])\s*[\)\]]?",
+        r"(?:correct\s+answer\s+is|the\s+correct\s+answer\s+is)\s*[\(\[]?\s*([A-Za-z])\s*[\)\]]?",
+    ]
+    for pat in cue_patterns:
+        m = re.search(pat, t, flags=re.IGNORECASE)
+        if m:
+            letter = ok(m.group(1))
+            if letter:
+                return letter
+
+    # 2) Parenthesized choices: "(b)"
+    m = re.search(r"[\(\[]\s*([A-Za-z])\s*[\)\]]", t)
+    if m:
+        letter = ok(m.group(1))
+        if letter:
+            return letter
+
+    # 3) Markdown bold: "**c**"
+    m = re.search(r"\*\*\s*([A-Za-z])\s*\*\*", t)
+    if m:
+        letter = ok(m.group(1))
+        if letter:
+            return letter
+
+    # 4) Fallback: standalone letter token
+    m = re.search(r"\b([A-Za-z])\b", t)
+    if m:
+        letter = ok(m.group(1))
+        if letter:
+            return letter
+
+    return None
 
 
 if __name__ == "__main__":

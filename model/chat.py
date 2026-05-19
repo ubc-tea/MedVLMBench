@@ -15,6 +15,7 @@ class ChatMetaModel(BaseModel):
     def __init__(self, args):
         super().__init__(args)
 
+        self.device = getattr(args, "device", "cuda")
         self.constants = edict(
             IGNORE_INDEX=-100,
             IMAGE_TOKEN_INDEX=-200,
@@ -24,8 +25,9 @@ class ChatMetaModel(BaseModel):
             DEFAULT_IM_END_TOKEN="<im_end>",
             IMAGE_PLACEHOLDER="<image-placeholder>",
         )
+        self._inference_context = {}
 
-    def infer_vision_language(self, image, qs, image_size=None):
+    def infer_vision_language(self, image, qs, image_size=None, temperature=None):
         # input image should be type of Tensor
         pass
 
@@ -37,6 +39,14 @@ class ChatMetaModel(BaseModel):
 
     def save(self, output_folder):
         pass
+
+    def set_inference_context(self, context=None):
+        """Store auxiliary information (e.g., multi-image paths) for the next inference call."""
+        self._inference_context = context or {}
+
+    def set_device(self, device):
+        """Update device placement for inference helpers."""
+        self.device = device
 
 
 def image_to_base64(image, fmt="PNG"):
@@ -65,7 +75,7 @@ class DeerAPIModel(ChatMetaModel):
 
         self.client = OpenAI(
             base_url="https://api.deerapi.com/v1",
-            api_key="sk-XwFQI7rxo3l9GQXsVkmQDaWulTDHJm3n47uWa84BNGDUqmp8",
+            api_key=os.environ.get("DEER_API_KEY", ""),
         )
         self.api_model_name = "o3-2025-04-16"
 

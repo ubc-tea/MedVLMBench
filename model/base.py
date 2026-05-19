@@ -17,6 +17,7 @@ class BaseModel:
         self.tokenizer = None
         self.image_processor = None
         self.image_processor_callable = None
+        self.prefers_cpu_image_inputs = False
 
         self.constants = edict()
 

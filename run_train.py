@@ -135,6 +135,14 @@ def setup_args(args):
             args.gradient_checkpointing is False
         ), "Currently there is a bug when training visual tower using peft + gradient checkpointing. For more info: https://github.com/huggingface/peft/issues/1402"
 
+        # HF Trainer falls back to DataParallel for plain multi-GPU `python run_train.py`
+        # launches. LLaVA produces variable sequence lengths across replicas after
+        # multimodal token expansion, which breaks DataParallel gather. Keep the
+        # plain launch on a single visible GPU unless the user explicitly uses a
+        # distributed launcher such as torchrun/deepspeed.
+        if torch.cuda.is_available() and torch.cuda.device_count() > 1 and not args.deepspeed:
+            args._n_gpu = 1
+
         if args.model == "LLaVA-1.5":
             save_folder_name += "_llava"
         if args.model == "LLaVA-Med":
@@ -190,18 +198,22 @@ if __name__ == "__main__":
         torch.cuda.manual_seed_all(args.seed)
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
-        
+
     model_wrapped = get_model(args=args, device=args.device.type)
     model_wrapped.load_for_training(args.model_path)
 
-    total_params = sum(p.numel() for p in model_wrapped.parameters())
-    trainable_params = sum(p.numel() for p in model_wrapped.parameters() if p.requires_grad)
-    trainable_percentage = 100 * trainable_params / total_params
-    args.logger.info(f"Total number of parameters: {total_params/1e6:.2f}M")
-    args.logger.info(f"Trainable parameters: {trainable_params/1e6:.2f}M")
-    args.logger.info(f"Trainable parameters percentage: {trainable_percentage:.2f}%")
+    # Checking model param here may be unreliable. The param state may be changed when initializing HF trainers using training configs.
+    # total_params = sum(p.numel() for p in model_wrapped.parameters())
+    # trainable_params = sum(p.numel() for p in model_wrapped.parameters() if p.requires_grad)
+    # trainable_percentage = 100 * trainable_params / total_params
+    # args.logger.info(f"Total number of parameters: {total_params/1e6:.2f}M")
+    # args.logger.info(f"Trainable parameters: {trainable_params/1e6:.2f}M")
+    # args.logger.info(f"Trainable parameters percentage: {trainable_percentage:.2f}%")
 
-    dataset = get_dataset(args, image_processor_callable=getattr(model_wrapped, "image_processor", None))
+    dataset_image_processor = getattr(
+        model_wrapped, "image_processor_callable", getattr(model_wrapped, "image_processor", None)
+    )
+    dataset = get_dataset(args, image_processor_callable=dataset_image_processor)
     train_engine = get_train_engine(args, model_wrapped=model_wrapped, dataset=dataset)
     train_engine.train()
 

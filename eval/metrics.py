@@ -9,8 +9,7 @@ import torch
 import torch.distributed as dist
 from torch import inf
 from transformers import AutoTokenizer, AutoConfig
-from bert_score import score as bertscore
-from nltk.translate.meteor_score import meteor_score, single_meteor_score
+
 
 from eval.utils import normalize_word, split_sentence, brevity_penalty, modified_precision
 
@@ -320,7 +319,6 @@ def calculate_f1score(candidate, reference):
             return 2 * precision * recall / (precision + recall), precision, recall
 
 
-
 _TOKENIZER_CACHE = {}
 
 #: Any model_max_length or max_position_embeddings above this
@@ -382,23 +380,23 @@ def calculate_bertscore(
     device: str | None = None,
     reduction: str = "max",
 ):
-    
+    from bert_score import score as bertscore
+
     if bertscore is None:
-        raise ImportError(
-            "bert_score library not found. Install it with:  pip install bert-score"
-        )
+        raise ImportError("bert_score library not found. Install it with:  pip install bert-score")
 
     if device is None:
         device = "cuda" if torch.cuda.is_available() else "cpu"
-    
+
     tok = _get_tokenizer(model_type)
     limit = _model_window(model_type, tok)
- 
+
     cand_proc = _trim(candidate, limit, tok)
-    ref_proc  = _trim(references, limit, tok)
+    ref_proc = _trim(references, limit, tok)
 
     P, R, F1 = bertscore(
-        [cand_proc], [ref_proc],
+        [cand_proc],
+        [ref_proc],
         model_type=model_type,
         num_layers=12,
         device=device,
@@ -415,12 +413,10 @@ def calculate_bertscore(
 def calculate_meteor(
     candidate: str,
     references: str,
-    alpha: float = 0.9,            # precision/recall balance; 0.9 is the default
-    beta:  float = 3.0,            # fragmentation penalty weight
-    gamma: float = 0.5,            # synonym/Stem penalty
+    alpha: float = 0.9,  # precision/recall balance; 0.9 is the default
+    beta: float = 3.0,  # fragmentation penalty weight
+    gamma: float = 0.5,  # synonym/Stem penalty
 ) -> float:
+    from nltk.translate.meteor_score import meteor_score, single_meteor_score
 
-    return single_meteor_score(
-        [references], [candidate],
-        alpha=alpha, beta=beta, gamma=gamma
-    )
+    return single_meteor_score([references], [candidate], alpha=alpha, beta=beta, gamma=gamma)

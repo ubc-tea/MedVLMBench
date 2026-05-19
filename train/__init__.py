@@ -1,6 +1,7 @@
 from train.caption import CaptionTrainEngine
 from train.vqa import VQATrainEngine
 from train.lp import DiagnosisLPTrainEngine
+
 from train.clip_trainer import CLIPLPTrainer, make_diagnosis_data_module
 from train.clip_trainer import make_diagnosis_data_module
 
@@ -11,6 +12,8 @@ def get_trainer(args, model_wrapped, dataset):
     if args.model in ["LLaVA-1.5", "LLaVA-Med"]:
         from model.release.llava.train.llava_trainer import LLaVATrainer
         from train.llava_trainer import make_supervised_data_module
+
+        # dataset.transform = None
 
         data_module = make_supervised_data_module(
             args,
@@ -23,6 +26,7 @@ def get_trainer(args, model_wrapped, dataset):
 
         return trainer
     elif args.model in ["MedGemma"]:
+        from train.medgemma_trainer import MedGemmaTrainer
         from trl import SFTConfig, SFTTrainer
         from torchvision.transforms.functional import to_pil_image
         from typing import Any
@@ -33,6 +37,9 @@ def get_trainer(args, model_wrapped, dataset):
 
             for subject in subjects:
                 image = subject["image"]
+                if type(image) is not list:
+                    image = [image]
+                num_images = len(image)
                 qs = subject["query"]
                 answer = subject["label"]
                 prompt_template = subject["prompt_template"]
@@ -48,8 +55,8 @@ def get_trainer(args, model_wrapped, dataset):
                         "role": "user",
                         "content": [
                             {"type": "text", "text": prompt},
-                            {"type": "image"},
-                        ],
+                        ]
+                        + [{"type": "image"} for _ in range(num_images)],
                     },
                     {
                         "role": "assistant",
@@ -62,7 +69,7 @@ def get_trainer(args, model_wrapped, dataset):
                     },
                 ]
 
-                images.append([to_pil_image(image).convert("RGB")])
+                images.append([to_pil_image(x).convert("RGB") for x in image])
                 texts.append(
                     model_wrapped.processor.apply_chat_template(
                         messages, add_generation_prompt=False, tokenize=False
@@ -160,8 +167,20 @@ def get_trainer(args, model_wrapped, dataset):
         )
 
         return trainer
-    
-    elif args.model in ["CLIP", "MedCLIP", "PMCCLIP", "PLIP", "MedSigLIP", "XrayGPT", "BioMedCLIP", "BLIP", "BLIP2-2.7b", "PubMedCLIP", "SigLIP"]:        
+
+    elif args.model in [
+        "CLIP",
+        "MedCLIP",
+        "PMCCLIP",
+        "PLIP",
+        "MedSigLIP",
+        "XrayGPT",
+        "BioMedCLIP",
+        "BLIP",
+        "BLIP2-2.7b",
+        "PubMedCLIP",
+        "SigLIP",
+    ]:
         if args.usage in ["lp", "img-lora-lp", "clip-img-lora"]:
             data_module = make_diagnosis_data_module(
                 train_dataset=dataset,

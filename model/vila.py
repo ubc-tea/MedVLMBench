@@ -205,7 +205,8 @@ class VILA(ChatMetaModel):
         device="cuda",
         use_flash_attn=False,
         **kwargs,
-    ):
+    ):  
+
         if "NVILA" in model_path:
             if "lora" in model_path.lower():
                 model_base = "Efficient-Large-Model/NVILA-8B"
