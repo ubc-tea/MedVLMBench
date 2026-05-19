@@ -50,26 +50,28 @@
 
 ### Prerequisites
 
-Python 3.8+ with PyTorch. Install dependencies via pip:
-
-```bash
-pip install -r requirements.txt
-```
-
-Or use conda:
-
-```bash
-conda env create -f environment.yml
-conda activate medvlmbench
-```
+Python 3.11, PyTorch 2.1+, CUDA 11.8+.
 
 ### Installation
+
+**Option A — pip**
 
 ```bash
 git clone https://github.com/ubc-tea/MedVLMBench.git
 cd MedVLMBench
 pip install -r requirements.txt
 ```
+
+**Option B — conda**
+
+```bash
+git clone https://github.com/ubc-tea/MedVLMBench.git
+cd MedVLMBench
+conda env create -f environment.yml
+conda activate medvlmbench
+```
+
+> **Optional fast-attention deps** (require CUDA build tools): uncomment `flash-attn` and/or `xformers` in `requirements.txt` before installing.
 
 ### Download Datasets and Models
 
