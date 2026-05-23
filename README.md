@@ -5,6 +5,7 @@
   <a href="https://github.com/ubc-tea/MedVLMBench/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License"></a>
   <img src="https://img.shields.io/badge/Python-3.8%2B-green.svg" alt="Python">
   <img src="https://img.shields.io/github/stars/ubc-tea/MedVLMBench?style=social" alt="Stars">
+  <a href="https://github.com/FairMedFM/FairMedFM"><img src="https://img.shields.io/badge/Companion-FairMedFM-orange.svg" alt="FairMedFM"></a>
 </p>
 
 **MedVLMBench** is the first unified benchmark for systematically evaluating generalist and medical-specialist Vision-Language Models (VLMs). It covers **30+ models**, **14 datasets**, and **3 task types** (VQA, diagnosis, captioning) across radiology, pathology, dermatology, and ophthalmology — with support for off-the-shelf inference, linear probing, LoRA fine-tuning, and multi-agent reasoning.
@@ -26,6 +27,25 @@
 - **2025-06** Added MedXpertQA and OmniMedVQA benchmark datasets
 - **2025-06** Added MDAgent (multi-specialist reasoning) and UCAgent (hierarchical debate) wrappers
 - **2025-06** Added InternVL3, Gemma3, Qwen2-VL, Qwen2.5-VL, Lingshu, o3, Gemini 2.5 Pro
+
+---
+
+## Companion Benchmark: FairMedFM
+
+> **Evaluating fairness of medical FMs?** See our companion benchmark [**FairMedFM**](https://github.com/FairMedFM/FairMedFM) — the first fairness benchmark covering 20 medical imaging FMs across 17 datasets with bias metrics over sex, race, and age.
+
+MedVLMBench and FairMedFM form a **two-part evaluation suite** for medical foundation models — capability and fairness, measured on the same models and datasets.
+
+| | [MedVLMBench](https://github.com/ubc-tea/MedVLMBench) | FairMedFM |
+|---|---|---|
+| **Focus** | Capability: accuracy, AUROC, VQA scores | Fairness across sex, race, age |
+| **Model paradigm** | Generative VLMs + discriminative models | Discriminative FMs (CLIP, SAM variants) |
+| **Tasks** | VQA, Diagnosis, Captioning | Classification, Segmentation |
+| **Scale** | 30+ VLMs · 14 datasets | 20 FMs · 17 datasets |
+
+**Models evaluated in both**: BioMedCLIP · MedCLIP · PLIP · SigLIP · MedSigLIP · CLIP · BLIP · BLIP2 · PubMedCLIP
+
+**Datasets in both**: HAM10000 · CheXpert · MIMIC-CXR · FairVLMed10k · GF3300 · PAPILA
 
 ---
 
@@ -336,5 +356,16 @@ If you find this repository useful, please consider citing our paper:
   author={Zhong, Yuan and Jin, Ruinan and Li, Xiaoxiao and Dou, Qi},
   journal={arXiv preprint arXiv:2506.17337},
   year={2025}
+}
+```
+
+If you also use our companion benchmark **FairMedFM** for fairness evaluation, please cite:
+
+```bibtex
+@article{jin2024fairmedfm,
+  title={FairMedFM: Fairness Benchmarking for Medical Imaging Foundation Models},
+  author={Jin, Ruinan and Xu, Zikang and Zhong, Yuan and Yao, Qiongsong and Dou, Qi and Zhou, S Kevin and Li, Xiaoxiao},
+  journal={arXiv preprint arXiv:2407.00983},
+  year={2024}
 }
 ```
