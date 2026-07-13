@@ -75,6 +75,54 @@ def get_model(args, **kwargs):
             from model.gemini import Gemini25Pro
 
             model = Gemini25Pro(args=args)
+        elif args.model == "gemini-3.1-pro":
+            from model.gemini import Gemini31Pro
+
+            model = Gemini31Pro(args=args)
+        elif args.model == "gpt-5.2":
+            from model.gpt import GPT52
+
+            model = GPT52(args=args)
+        elif args.model == "Qwen3-VL":
+            from model.qwen3_vl import Qwen3_VL
+
+            model = Qwen3_VL(args=args)
+        elif args.model == "InternVL3.5":
+            from model.internvl import InternVL35
+
+            model = InternVL35(args=args)
+        elif args.model == "GLM-4.1V-Thinking":
+            from model.glm4v import GLM4V
+
+            model = GLM4V(args=args)
+        elif args.model == "GLM-4.5V":
+            from model.glm4v import GLM45V
+
+            model = GLM45V(args=args)
+        elif args.model == "Molmo":
+            from model.molmo import Molmo
+
+            model = Molmo(args=args)
+        elif args.model == "Llama-4":
+            from model.llama4 import Llama4
+
+            model = Llama4(args=args)
+        elif args.model == "HuatuoGPT-Vision":
+            from model.huatuogpt_vision import HuatuoGPTVision
+
+            model = HuatuoGPTVision(args=args)
+        elif args.model == "MedVLM-R1":
+            from model.medvlm_r1 import MedVLMR1
+
+            model = MedVLMR1(args=args)
+        elif args.model == "CheXagent-2":
+            from model.chexagent import CheXagent2
+
+            model = CheXagent2(args=args)
+        elif args.model == "MAIRA-2":
+            from model.maira2 import MAIRA2
+
+            model = MAIRA2(args=args)
         else:
             raise NotImplementedError()
         model = _maybe_wrap_vlm_agent(args, model)

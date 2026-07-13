@@ -8,13 +8,13 @@
   <a href="https://github.com/FairMedFM/FairMedFM"><img src="https://img.shields.io/badge/Companion-FairMedFM-orange.svg" alt="FairMedFM"></a>
 </p>
 
-**MedVLMBench** is the first unified benchmark for systematically evaluating generalist and medical-specialist Vision-Language Models (VLMs). It covers **30+ models**, **14 datasets**, and **3 task types** (VQA, diagnosis, captioning) across radiology, pathology, dermatology, and ophthalmology — with support for off-the-shelf inference, linear probing, LoRA fine-tuning, and multi-agent reasoning.
+**MedVLMBench** is the first unified benchmark for systematically evaluating generalist and medical-specialist Vision-Language Models (VLMs). It covers **35+ models**, **14 datasets**, and **3 task types** (VQA, diagnosis, captioning) across radiology, pathology, dermatology, and ophthalmology — with support for off-the-shelf inference, linear probing, LoRA fine-tuning, and multi-agent reasoning.
 
 ---
 
 ## Highlights
 
-- **30+ models supported** — CLIP-based (BioMedCLIP, MedCLIP, PLIP, SigLIP …) and generative (LLaVA, MedGemma, Qwen2-VL, InternVL3, Gemini 2.5 Pro, o3 …)
+- **35+ models supported** — CLIP-based (BioMedCLIP, MedCLIP, PLIP, SigLIP …) and generative (LLaVA, MedGemma, Qwen3-VL, InternVL3.5, GLM-4.5V, Molmo, Llama-4, Gemini 3.1 Pro, GPT-5.2, HuatuoGPT-Vision, MAIRA-2 …)
 - **14 medical datasets** — SLAKE, PathVQA, VQA-RAD, MedXpertQA, OmniMedVQA, PneumoniaMNIST, HAM10000, CheXpert, MIMIC-CXR and more
 - **3 evaluation tasks** — Visual Question Answering (VQA), Diagnostic Classification, Report Captioning
 - **Flexible fine-tuning** — off-the-shelf (OTS), linear probing (LP), LoRA, and full fine-tuning
@@ -23,6 +23,7 @@
 
 ## News
 
+- **2026-07** Added 12 new generalist and medical-specialist VLMs: Qwen3-VL, InternVL3.5, GLM-4.1V-Thinking, GLM-4.5V, Molmo, Llama-4, Gemini 3.1 Pro, GPT-5.2, HuatuoGPT-Vision (Qwen2.5-VL revision), MedVLM-R1, CheXagent-2, and MAIRA-2
 - **2025-06** Paper released on arXiv ([2506.17337](https://arxiv.org/abs/2506.17337))
 - **2025-06** Added MedXpertQA and OmniMedVQA benchmark datasets
 - **2025-06** Added MDAgent (multi-specialist reasoning) and UCAgent (hierarchical debate) wrappers
@@ -157,21 +158,35 @@ git clone https://huggingface.co/datasets/foreverbeliever/OmniMedVQA
 | Model | Evaluation | Training |
 |---|---|---|
 | o3 (OpenAI) | Done | NA |
+| GPT-5.2 (OpenAI) | Added — untested* | NA |
 | Gemini 2.5 Pro | Done | NA |
+| Gemini 3.1 Pro | Added — untested* | NA |
 | InternVL3 | Done | Coming Soon |
+| InternVL3.5 | Added — untested* | Coming Soon |
 | LLaVA-1.5 | Done | Done |
 | LLaVA-Med | Done | Done |
 | Gemma3 | Done | Coming Soon |
 | MedGemma | Done | Done |
 | Qwen2-VL | Done | Coming Soon |
 | Qwen2.5-VL | Done | Coming Soon |
+| Qwen3-VL | Added — untested* | Coming Soon |
+| GLM-4.1V-Thinking | Added — untested* | Coming Soon |
+| GLM-4.5V | Added — untested* | Coming Soon |
+| Molmo | Added — untested* | Coming Soon |
+| Llama-4 | Added — untested* | Coming Soon |
 | NVILA | Done | Done |
 | VILA-M3 | Done | Done |
 | VILA1.5 | Done | Done |
 | Lingshu | Done | Done |
+| HuatuoGPT-Vision | Added — untested* | Coming Soon |
+| MedVLM-R1 | Added — untested* | Coming Soon |
+| CheXagent-2 | Added — untested* | Coming Soon |
+| MAIRA-2 | Added — untested* | Coming Soon |
 | XrayGPT | Done | Done |
 | BLIP | Done | Done |
 | BLIP2-2.7b | Done | Done |
+
+*Added — untested: wrapper code is in place and import/syntax-checked, but not yet run end-to-end against downloaded weights. Please report issues.
 
 </details>
 
@@ -190,6 +205,8 @@ git clone https://huggingface.co/datasets/foreverbeliever/OmniMedVQA
 | SigLIP | Done | Done |
 
 </details>
+
+> **License note:** `Llama-4` (Meta license) and `MAIRA-2` (Microsoft Research License Agreement) require accepting a gated license on Hugging Face before download. `CheXagent-2` and `MAIRA-2` are released under non-commercial terms (CC-BY-NC-4.0 / MSRLA) — research use only.
 
 ---
 

@@ -18,3 +18,15 @@ class o3(DeerAPIModel):
         self.model_type = "medical"
         self.api_model_name = "o3-2025-04-16"
         self.max_try_num = 10
+
+
+class GPT52(DeerAPIModel):
+    def __init__(self, args):
+        super().__init__(args)
+
+        self.name = "gpt-5.2"
+        self.model_type = "medical"
+        # "gpt-5.2" resolves to the Thinking variant on the Responses/Chat Completions
+        # API; use "gpt-5.2-chat-latest" for the Instant variant if lower latency is needed.
+        self.api_model_name = "gpt-5.2"
+        self.max_try_num = 10

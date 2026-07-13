@@ -103,3 +103,17 @@ class InternVL3(ChatMetaModel):
                 T.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
             ]
         )
+
+
+class InternVL35(InternVL3):
+    """InternVL3.5 (flagship dense and MoE checkpoints, e.g. InternVL3_5-30B-A3B).
+
+    The chat-based inference API (`.chat()` on an `AutoModel` loaded with
+    `trust_remote_code=True`) is unchanged from InternVL3, so this subclass only
+    overrides the display name used for logging/reporting.
+    """
+
+    def __init__(self, args):
+        super().__init__(args)
+
+        self.name = "InternVL3.5"

@@ -1,7 +1,7 @@
 # ── Core framework ────────────────────────────────────────────────────────────
 torch>=2.1.0
 torchvision>=0.16.0
-transformers>=4.40.0
+transformers>=4.57.1  # Qwen3-VL, GLM-4.1V/4.5V, InternVL3.5, and Llama 4 need recent transformers
 peft>=0.10.0
 accelerate>=0.27.0
 datasets>=2.19.0
