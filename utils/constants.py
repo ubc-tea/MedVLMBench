@@ -14,9 +14,15 @@ CLIP_MODELS = [
     "MedSigLIP",
     "PubMedCLIP",
     "SigLIP",
+    "SigLIP2",
     "DermLIP",
     "EyeCLIP",
     "CONCH",
+]
+
+VISION_FOUNDATION_MODELS = [
+    "DINOv2", "DINOv3", "RAD-DINO", "AIMv2", "UNI2", "Virchow2",
+    "Prov-GigaPath", "RETFound",
 ]
 
 LANGUAGE_MODELS = [
@@ -51,7 +57,7 @@ LANGUAGE_MODELS = [
     "Lingshu",
 ]
 
-MODELS = CLIP_MODELS + LANGUAGE_MODELS
+MODELS = CLIP_MODELS + VISION_FOUNDATION_MODELS + LANGUAGE_MODELS
 
 
 # datasets

@@ -217,6 +217,44 @@ The three specialist models support `clip-zs`, `clip-img-lora`, `lp`, and `img-l
 
 Model code was synchronized from the development checkout; weights and benchmark results are separate downloads. Full model evaluation has not been repeated in this checkout.
 
+### Vision foundation models and segmentation
+
+Image-only encoders DINOv2, DINOv3, RAD-DINO, AIMv2, UNI2, Virchow2,
+Prov-GigaPath, and RETFound support diagnosis linear probing with `--usage lp`.
+SigLIP2 is available as a dual encoder for zero-shot diagnosis and linear probing.
+They do not expose a text tower. Use `--vision_backbone` to select a local model
+directory or a different Hugging Face ID; RETFound requires a local `.pth`
+checkpoint through this option. UNI2, Virchow2, Prov-GigaPath, DINOv3, and
+RETFound may require accepting the model license before downloading weights.
+The Hugging Face models use their published image processor; the timm models
+use the transform attached to the loaded model.
+
+```bash
+python run_train.py --task diagnosis --dataset HAM10000 --model DINOv3 \
+  --usage lp --output_dir ./output --num_train_epochs 1
+```
+
+Prompted 2D segmentation is available through `run_segmentation.py` for SAM,
+MedSAM, SAM2, MedSAM2, MobileSAM, TinySAM, SAM-Med2D, and FT-SAM. Install
+[`segment-anything`](https://github.com/facebookresearch/segment-anything)
+for the SAM variants and [`sam2`](https://github.com/facebookresearch/sam2)
+for SAM2/MedSAM2. Provide a CSV with
+`image,mask` columns; paths are relative to the CSV. Binary masks use nonzero
+pixels as foreground. The chosen point or box comes from each ground-truth
+mask, so the reported Dice and IoU measure prompted segmentation rather than
+automatic mask discovery. Empty masks are counted and skipped.
+
+```bash
+python run_segmentation.py --model SAM2 --checkpoint /path/to/sam2.pt \
+  --sam2-config configs/sam2.1/sam2.1_hiera_b+.yaml \
+  --manifest /path/to/test_manifest.csv --prompt box \
+  --output-dir ./output/segmentation/sam2
+```
+
+The output directory contains `metrics.json` and per-image `predictions.csv`.
+The SAM-Med2D/FT-SAM and TinySAM/MobileSAM builders are adapted from
+FairMedFM; their source and license are in `model/segmentation_builders/`.
+
 > **License note:** `Llama-4` (Meta license) and `MAIRA-2` (Microsoft Research License Agreement) require accepting a gated license on Hugging Face before download. `CheXagent-2` and `MAIRA-2` are released under non-commercial terms (CC-BY-NC-4.0 / MSRLA) — research use only.
 
 ---

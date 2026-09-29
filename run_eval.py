@@ -50,6 +50,8 @@ def collect_args():
     parser.add_argument("--context_length", default=77)
     parser.add_argument("--model_path", type=str, default=None, help="explicitly indentify checkpoint path to resume.")
     parser.add_argument("--model_base", type=str, default=None)
+    parser.add_argument("--vision_backbone", type=str, default=None,
+                        help="Hugging Face ID or local checkpoint for a vision foundation model")
     parser.add_argument("--usage", type=str, default=None)
     parser.add_argument(
         "--mdagent_mode",

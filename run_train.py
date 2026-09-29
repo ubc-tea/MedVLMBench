@@ -87,6 +87,7 @@ class Arguments(transformers.TrainingArguments):
     context_length: int = field(default=77)
     model_path: str = field(default=None, metadata={"help": "explicitly indentify checkpoint path to resume."})
     model_base: str = field(default=None)
+    vision_backbone: Optional[str] = field(default=None, metadata={"help": "Hugging Face ID or local checkpoint for a vision foundation model."})
     patho_r1_training_authorized: bool = field(default=False, metadata={"help": "Confirm written permission from Patho-R1 rights holders before fine-tuning its restricted checkpoint."})
     freeze_backbone: bool = field(default=False)
     usage: str = field(default=None)

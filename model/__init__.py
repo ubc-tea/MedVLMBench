@@ -162,7 +162,14 @@ def get_model(args, **kwargs):
         num_classes = len(INFO[args.dataset.lower()]["label"])
 
         if args.usage in ["lp", "img-lora-lp"]:
-            if args.model == "BLIP":
+            if args.model in {
+                "DINOv2", "DINOv3", "RAD-DINO", "AIMv2", "UNI2", "Virchow2",
+                "Prov-GigaPath", "RETFound",
+            }:
+                from model.vision_foundation import VisionFoundationLPForDiagnosis
+
+                model = VisionFoundationLPForDiagnosis(args=args, text=text, num_classes=num_classes)
+            elif args.model == "BLIP":
                 from model.blip import BLIPLPForDiagnosis
 
                 model = BLIPLPForDiagnosis(args=args, text=text, num_classes=num_classes)
@@ -206,6 +213,10 @@ def get_model(args, **kwargs):
                 from model.siglip import SiglipLPForDiagnosis
 
                 model = SiglipLPForDiagnosis(args=args, text=text, num_classes=num_classes)
+            elif args.model == "SigLIP2":
+                from model.siglip2 import SigLIP2LPForDiagnosis
+
+                model = SigLIP2LPForDiagnosis(args=args, text=text, num_classes=num_classes)
             elif args.model == "DermLIP":
                 from model.dermlip import DermLIPLPForDiagnosis
 
@@ -279,6 +290,10 @@ def get_model(args, **kwargs):
                 from model.siglip import SiglipForDiagnosis
 
                 model = SiglipForDiagnosis(args=args, text=text, num_classes=num_classes)
+            elif args.model == "SigLIP2":
+                from model.siglip2 import SigLIP2ForDiagnosis
+
+                model = SigLIP2ForDiagnosis(args=args, text=text, num_classes=num_classes)
             elif args.model == "MedSigLIP":
                 from model.medsiglip import MedSigLIPForDiagnosis
 
