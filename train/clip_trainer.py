@@ -87,6 +87,7 @@ class CLIPLPTrainer(Trainer):
         self.total_train_forward_flops = 0
         self.total_train_backward_flops = 0
         self.profile = False
+        self._checked_lora_gradients = False
 
         self.add_callback(CustomCallback(self))
 
@@ -155,7 +156,26 @@ class CLIPLPTrainer(Trainer):
     def training_step(self, model, inputs, *args, **kwargs):
         # Let Trainer handle gradient accumulation, mixed precision and distributed
         # backward. ExperimentTracker wraps this method to profile the whole step.
-        return super().training_step(model, inputs, *args, **kwargs)
+        loss = super().training_step(model, inputs, *args, **kwargs)
+        if self.args.usage in {"img-lora-lp", "clip-img-lora"} and not self._checked_lora_gradients:
+            adapters = [
+                (name, parameter) for name, parameter in model.named_parameters()
+                if parameter.requires_grad and (
+                    ".lora_B." in name or ".parametrizations.weight.0.B" in name
+                )
+            ]
+            if not adapters:
+                raise RuntimeError("Image LoRA training has no trainable LoRA B parameters")
+            missing = [name for name, parameter in adapters if parameter.grad is None]
+            if missing:
+                raise RuntimeError(
+                    "Image LoRA parameters were bypassed during backward: " + ", ".join(missing[:5])
+                )
+            if not any(torch.count_nonzero(parameter.grad).item() for _, parameter in adapters):
+                raise RuntimeError("Image LoRA received only zero gradients on the first training step")
+            self._checked_lora_gradients = True
+            self.args.logger.info("Verified nonzero image LoRA gradients for %d adapters", len(adapters))
+        return loss
     
     def get_labels(self, eval_preds):
         logits, labels = eval_preds
