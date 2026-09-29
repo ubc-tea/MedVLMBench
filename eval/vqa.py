@@ -10,6 +10,7 @@ from eval.metrics import (
     calculate_meteor,
 )
 from eval.utils import normalize_word, extract_choice_letter
+from utils.experiment_tracking import inference_flop_context
 
 
 def process_tokens(text):
@@ -56,7 +57,8 @@ class VQAEvalEngine(EvalEngine):
                 image = image.to(device, non_blocking=True)
 
         prompt = prompt_template.format(qs)
-        output = model.infer_vision_language(image, prompt, image_size=image_size)
+        with inference_flop_context(self, sample_count=1):
+            output = model.infer_vision_language(image, prompt, image_size=image_size)
         if output is None:
             output = ""
         elif not isinstance(output, str):

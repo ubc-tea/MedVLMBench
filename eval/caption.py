@@ -9,6 +9,7 @@ from nltk.translate.meteor_score import meteor_score
 from eval.base import EvalEngine
 from eval.metrics import calculate_exactmatch, calculate_bertscore
 from eval.utils import normalize_word
+from utils.experiment_tracking import inference_flop_context
 
 
 class CaptionEvalEngine(EvalEngine):
@@ -31,7 +32,8 @@ class CaptionEvalEngine(EvalEngine):
         image = image.to(device, non_blocking=True)
 
         prompt = prompt_template.format("").strip()
-        output = model.infer_vision_language(image, prompt, image_size=image_size)
+        with inference_flop_context(self, sample_count=1):
+            output = model.infer_vision_language(image, prompt, image_size=image_size)
         output_l = output.lower()
 
         output_normed = normalize_word(output_l)

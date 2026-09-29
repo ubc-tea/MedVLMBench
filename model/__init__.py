@@ -23,6 +23,10 @@ def get_model(args, **kwargs):
             from model.llava import LLaVA
 
             model = LLaVA(args=args)
+        elif args.model == "Quilt-LLaVA":
+            from model.quilt_llava import QuiltLLaVA
+
+            model = QuiltLLaVA(args=args)
         elif args.model == "BLIP2-2.7b":
             from model.blip2 import BLIP2
 
@@ -51,6 +55,10 @@ def get_model(args, **kwargs):
             from model.qwen25_vl import Qwen25_VL
 
             model = Qwen25_VL(args=args)
+        elif args.model == "Patho-R1":
+            from model.patho_r1 import PathoR1
+
+            model = PathoR1(args=args)
         elif args.model == "XGenMiniV1":
             from model.xgen import XGenMiniV1
 
@@ -256,6 +264,8 @@ def get_model(args, **kwargs):
 
                 model = MedCLIPForDiagnosis(args=args, text=text, num_classes=num_classes)
             elif args.model == "PMCCLIP":
+                from model.pmcclip import PMCCLIPForDiagnosis
+
                 model = PMCCLIPForDiagnosis(args=args, text=text, num_classes=num_classes)
             elif args.model == "BLIP2-2.7b":
                 from model.blip2 import BLIP2ForDiagnosis

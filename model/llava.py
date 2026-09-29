@@ -545,8 +545,6 @@ class LLaVA(ChatMetaModel):
             assert len(image) == 1, f"LLaVA-1.5 only support single image input, while got {len(image)}."
             image = image[0]
 
-        image = to_pil_image(image)
-
         qs = qs.replace(self.constants.DEFAULT_IMAGE_TOKEN, "").strip()
         if self.model.config.mm_use_im_start_end:
             qs = (
@@ -570,11 +568,26 @@ class LLaVA(ChatMetaModel):
             .to(self.model.device)
         )
 
-        if type(image) is Image.Image:
-            image_tensor = process_images([image], self.image_processor, self.model.config)[0]
+        # Evaluation passes raw uint8 tensors (PILToTensor); convert them to
+        # PIL before applying this checkpoint's image processor exactly once.
+        # Keep normalized float tensors usable for callers that preprocess
+        # their own images.
+        if isinstance(image, torch.Tensor):
+            if image.ndim == 4 and image.shape[0] == 1:
+                image = image[0]
+            if image.ndim != 3:
+                raise ValueError(f"Expected a single CHW image tensor, got shape {tuple(image.shape)}")
+            if image.dtype == torch.uint8:
+                image = to_pil_image(image.cpu())
+            else:
+                image_tensor = image
+        if isinstance(image, Image.Image):
+            image = image.convert("RGB")
+            image_tensor = self._preprocess_inference_image(image)
             image_size = image.size
         else:
-            image_tensor = image
+            if not isinstance(image, torch.Tensor):
+                raise TypeError(f"Unsupported LLaVA image type: {type(image).__name__}")
 
         projector = self.model.get_model().mm_projector
         projector_dtype = next(projector.parameters()).dtype
@@ -594,8 +607,21 @@ class LLaVA(ChatMetaModel):
                 use_cache=True,
             )
 
+        # Some transformers versions return the prompt tokens as a prefix;
+        # others return only newly generated tokens for inputs_embeds.
+        if output_ids.shape[1] >= input_ids.shape[1]:
+            prefix = output_ids[:, : input_ids.shape[1]]
+            text_positions = input_ids != self.constants.IMAGE_TOKEN_INDEX
+            if torch.equal(prefix[text_positions], input_ids[text_positions]):
+                output_ids = output_ids[:, input_ids.shape[1] :]
         outputs = self.tokenizer.batch_decode(output_ids, skip_special_tokens=True)[0].strip()
+        stop_str = conv.sep2 if conv.sep_style.name == "TWO" else conv.sep
+        if stop_str and outputs.endswith(stop_str):
+            outputs = outputs[: -len(stop_str)].strip()
         return outputs
+
+    def _preprocess_inference_image(self, image):
+        return process_images([image], self.image_processor, self.model.config)[0]
 
     def infer_language(self, qs, temperature=0):
         # model inference for language only tasks

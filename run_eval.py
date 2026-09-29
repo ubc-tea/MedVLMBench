@@ -3,6 +3,7 @@ import os
 import random
 import argparse
 import warnings
+import traceback
 from collections import defaultdict
 from utils import constants
 
@@ -16,6 +17,7 @@ from utils import basics
 from model import get_model
 from dataset import get_dataset
 from eval import get_eval_engine
+from utils.experiment_tracking import ExperimentTracker, merge_worker_manifests
 
 
 def collect_args():
@@ -63,6 +65,12 @@ def collect_args():
     parser.add_argument("--cache_dir", default=None)
     parser.add_argument("--eval_print_freq", type=int, default=100, help="logging frequency (step)")
     parser.add_argument("--max_samples", type=int, default=None, help="optionally limit evaluation to the first N samples")
+    parser.add_argument(
+        "--flops_profile_batches",
+        type=int,
+        default=1,
+        help="number of inference batches to profile for FLOPs/sample; set 0 to disable",
+    )
     parser.add_argument(
         "--gen_max_new_tokens",
         type=int,
@@ -127,15 +135,22 @@ def _eval_worker(rank, world_size, args_dict):
     if args.model_path != "original_pretrained":
         model_wrapped.load_from_pretrained(model_path=args.model_path, device=args.device)
 
-    dataset_image_processor = getattr(
-        model_wrapped, "image_processor_callable", getattr(model_wrapped, "image_processor", None)
-    )
+    dataset_image_processor = getattr(model_wrapped, "image_processor_callable", None) or getattr(model_wrapped, "image_processor", None)
     dataset = get_dataset(args, dataset_image_processor)
     shard_indices = list(range(rank, len(dataset), world_size))
     args.eval_header = f"GPU {rank} [{len(shard_indices)} samples]:"
     logger.info(f"Worker {rank} processing {len(shard_indices)} / {len(dataset)} samples on {args.device}.")
-    eval_engine = get_eval_engine(args=args, dataset=dataset)
-    eval_engine.evaluate(args=args, model=model_wrapped, indices=shard_indices, save_outputs=False)
+    tracker = ExperimentTracker(args.output_dir, "evaluation", args, model_wrapped, dataset)
+    tracker.start()
+    try:
+        eval_engine = get_eval_engine(args=args, dataset=dataset)
+        eval_engine.flop_tracker = tracker
+        eval_engine.evaluate(args=args, model=model_wrapped, indices=shard_indices, save_outputs=False)
+    except BaseException as exc:
+        tracker.finish(status="failed", error="".join(traceback.format_exception_only(type(exc), exc)).strip())
+        raise
+    else:
+        tracker.finish(status="completed")
 
     payload = eval_engine.export_state(model_wrapped)
     payload["num_samples"] = len(dataset)
@@ -181,6 +196,12 @@ def _merge_worker_payloads(args):
     if args.save_pred:
         with open(os.path.join(args.output_dir, "predictions.json"), "w") as fp:
             json.dump(records, fp, indent=4)
+
+    merge_worker_manifests(
+        args.output_dir,
+        [_worker_output_dir(args.output_dir, rank) for rank in range(args.num_gpus)],
+        args,
+    )
 
     for rank in range(args.num_gpus):
         payload_path = _worker_payload_path(args.output_dir, rank)
@@ -237,12 +258,25 @@ if __name__ == "__main__":
     if args.model_path != "original_pretrained":
         model_wrapped.load_from_pretrained(model_path=args.model_path, device=args.device)
 
-    dataset_image_processor = getattr(
-        model_wrapped, "image_processor_callable", getattr(model_wrapped, "image_processor", None)
-    )
+    dataset_image_processor = getattr(model_wrapped, "image_processor_callable", None) or getattr(model_wrapped, "image_processor", None)
     dataset = get_dataset(args, dataset_image_processor)
 
-    eval_engine = get_eval_engine(args=args, dataset=dataset)
-    eval_engine.evaluate(args=args, model=model_wrapped)
+    tracker = ExperimentTracker(
+        output_dir=args.output_dir,
+        phase="evaluation",
+        args=args,
+        model=model_wrapped,
+        dataset=dataset,
+    )
+    tracker.start()
+    try:
+        eval_engine = get_eval_engine(args=args, dataset=dataset)
+        eval_engine.flop_tracker = tracker
+        eval_engine.evaluate(args=args, model=model_wrapped)
+    except BaseException as exc:
+        tracker.finish(status="failed", error="".join(traceback.format_exception_only(type(exc), exc)).strip())
+        raise
+    else:
+        tracker.finish(status="completed")
 
     args.logger.info("End of the evaluation")
