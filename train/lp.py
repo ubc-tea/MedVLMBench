@@ -6,3 +6,7 @@ class DiagnosisLPTrainEngine(TrainEngine):
         super().__init__(args, dataset, model_wrapped, logger, hf_trainer)
 
         self.task = "lp"
+
+    def save(self):
+        self.hf_trainer.save_state()
+        self.hf_trainer.save_model(self.args.output_dir)

@@ -135,10 +135,24 @@ class CLIPImgLPModel(CLIPBase):
         
         self.head = torch.nn.Linear(self.vision_embed_dim, self.num_classes)
 
+    def load_from_pretrained(self, model_path, device, **kwargs):
+        state = torch.load(model_path, map_location="cpu", weights_only=True)
+        if not any(key.startswith("head.") for key in state):
+            raise ValueError(
+                "This linear-probe checkpoint has no classifier head and cannot be "
+                "evaluated reliably. Retrain with the complete-checkpoint saver."
+            )
+        self.load_state_dict(state)
+        self.to(device)
+
 
     def forward(self, images):
-        with torch.no_grad():
+        if self.args.usage == "img-lora-lp":
+            # the LoRA adapters live in the image encoder, so it must stay in the autograd graph
             image_features = self.encode_image(images)
+        else:
+            with torch.no_grad():
+                image_features = self.encode_image(images)
         return self.head(image_features)
 
     def get_parameters_info(self):
@@ -171,4 +185,4 @@ class CLIPVisionLoRALPModel(BaseModel, nn.Module):
     def forward(self, images):
         image_features = self.encode_image(images)
         
-        return self.head(image_features)        
+        return self.head(image_features)

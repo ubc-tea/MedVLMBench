@@ -14,6 +14,9 @@ CLIP_MODELS = [
     "MedSigLIP",
     "PubMedCLIP",
     "SigLIP",
+    "DermLIP",
+    "EyeCLIP",
+    "CONCH",
 ]
 
 LANGUAGE_MODELS = [

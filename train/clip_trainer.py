@@ -198,7 +198,7 @@ class CLIPLPTrainer(Trainer):
 
         os.makedirs(output_dir, exist_ok=True)
         
-        model_to_save = self.model.model
+        model_to_save = self.model if hasattr(self.model, "head") else self.model.model
 
         if hasattr(model_to_save, 'module'):
             model_to_save = model_to_save.module

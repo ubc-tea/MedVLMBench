@@ -38,6 +38,8 @@ pycocoevalcap>=1.2
 # ── Model-specific dependencies ───────────────────────────────────────────────
 clip @ git+https://github.com/openai/CLIP.git
 open-clip-torch>=2.24.0
+ftfy>=6.2.0
+h5py>=3.8.0  # vendored CONCH
 qwen-vl-utils>=0.0.10
 openai>=1.0.0
 tiktoken>=0.5.0

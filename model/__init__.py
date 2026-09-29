@@ -198,6 +198,18 @@ def get_model(args, **kwargs):
                 from model.siglip import SiglipLPForDiagnosis
 
                 model = SiglipLPForDiagnosis(args=args, text=text, num_classes=num_classes)
+            elif args.model == "DermLIP":
+                from model.dermlip import DermLIPLPForDiagnosis
+
+                model = DermLIPLPForDiagnosis(args=args, text=text, num_classes=num_classes)
+            elif args.model == "EyeCLIP":
+                from model.eyeclip import EyeCLIPLPForDiagnosis
+
+                model = EyeCLIPLPForDiagnosis(args=args, text=text, num_classes=num_classes)
+            elif args.model == "CONCH":
+                from model.conch import CONCHLPForDiagnosis
+
+                model = CONCHLPForDiagnosis(args=args, text=text, num_classes=num_classes)
             else:
                 raise NotImplementedError()
 
@@ -265,6 +277,18 @@ def get_model(args, **kwargs):
                 from model.pubmedclip import PubMedCLIPForDiagnosis
 
                 model = PubMedCLIPForDiagnosis(args=args, text=text, num_classes=num_classes)
+            elif args.model == "DermLIP":
+                from model.dermlip import DermLIPForDiagnosis
+
+                model = DermLIPForDiagnosis(args=args, text=text, num_classes=num_classes)
+            elif args.model == "EyeCLIP":
+                from model.eyeclip import EyeCLIPForDiagnosis
+
+                model = EyeCLIPForDiagnosis(args=args, text=text, num_classes=num_classes)
+            elif args.model == "CONCH":
+                from model.conch import CONCHForDiagnosis
+
+                model = CONCHForDiagnosis(args=args, text=text, num_classes=num_classes)
             else:
                 raise NotImplementedError()
         elif args.usage in ["clip-adapter"]:

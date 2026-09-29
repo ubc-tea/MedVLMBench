@@ -203,8 +203,19 @@ git clone https://huggingface.co/datasets/foreverbeliever/OmniMedVQA
 | MedSigLIP | Done | Done |
 | PubMedCLIP | Done | Done |
 | SigLIP | Done | Done |
+| DermLIP | Added | Added |
+| EyeCLIP | Added | Added |
+| CONCH | Added | Added |
 
 </details>
+
+The three specialist models support `clip-zs`, `clip-img-lora`, `lp`, and `img-lora-lp` through the diagnosis entrypoints.
+
+- **DermLIP:** loads `redlessone/DermLIP_ViT-B-16` via OpenCLIP, or the local encoder at `pretrained_models/dermlip/frozen_lp_encoder.pt`.
+- **EyeCLIP:** place the official `eyeclip_visual.pt` in `pretrained_models/eyeclip/`, or set `EYECLIP_CKPT` to its path.
+- **CONCH:** uses the bundled source in `third_party/CONCH`. Place weights at `pretrained_models/conch/pytorch_model.bin`, set `CONCH_CKPT`, or accept the Hugging Face model license and set `HF_TOKEN`. CONCH uses the CC BY-NC 4.0 license; see `third_party/CONCH/LICENSE`.
+
+Model code was synchronized from the development checkout; weights and benchmark results are separate downloads. Full model evaluation has not been repeated in this checkout.
 
 > **License note:** `Llama-4` (Meta license) and `MAIRA-2` (Microsoft Research License Agreement) require accepting a gated license on Hugging Face before download. `CheXagent-2` and `MAIRA-2` are released under non-commercial terms (CC-BY-NC-4.0 / MSRLA) — research use only.
 
