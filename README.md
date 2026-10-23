@@ -130,7 +130,7 @@ Download [Harvard-FairVLMed10k](https://ophai.hms.harvard.edu/datasets/harvard-f
 
 ```
 data/FairVLMed10k/
-├── vqa_{train,test}.csv
+├── vqa_{train,test}.csv      # included in this repo
 ├── caption_{train,test}.csv
 ├── split/{train,test}.csv    # diagnosis
 ├── Training/                 # *.npz

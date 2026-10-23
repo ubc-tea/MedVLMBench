@@ -164,7 +164,10 @@ cython_debug/
 #.idea/
 
 output/
-data/
+data/*
+!data/FairVLMed10k/
+data/FairVLMed10k/*
+!data/FairVLMed10k/*.csv
 pretrained_models/
 log/
 pretrained/
