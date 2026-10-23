@@ -7,26 +7,7 @@ from easydict import EasyDict as edict
 from PIL import Image
 
 from datasets import load_dataset, concatenate_datasets
-from dataset.base import BaseDataset
-
-
-def _resolve_fairvlmed10k_roots(image_path):
-    image_root = os.path.abspath(image_path)
-    metadata_candidates = [
-        image_root,
-        os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "FairVLMed10k"),
-    ]
-
-    metadata_root = None
-    for candidate in metadata_candidates:
-        if os.path.exists(os.path.join(candidate, "caption_test.csv")):
-            metadata_root = candidate
-            break
-
-    if metadata_root is None:
-        metadata_root = image_root
-
-    return metadata_root, image_root
+from dataset.base import BaseDataset, resolve_fairvlmed10k_roots
 
 
 class CaptionDataset(BaseDataset):
@@ -44,7 +25,7 @@ class HarvardFairVLMed10kCaption(CaptionDataset):
         self.name = "Harvard-FairVLMed10k"
         self.modality = "SLO Fundus"
 
-        self.metadata_path, self.image_path = _resolve_fairvlmed10k_roots(data_args.image_path)
+        self.metadata_path, self.image_path = resolve_fairvlmed10k_roots(data_args.image_path, f"caption_{split}.csv")
         self.ds = pd.read_csv(os.path.join(self.metadata_path, f"caption_{split}.csv"))
 
     def __len__(self):

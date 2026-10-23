@@ -28,7 +28,8 @@ datasets = {
     "SLAKE-vqa": SLAKE,
     "PathVQA-vqa": PathVQA,
     "VQA-RAD-vqa": VQARAD,
-    "Harvard-FairVLMed10k-vqa": HarvardFairVLMed10kVQA,
+    "HarvardFairVLMed10k-vqa": HarvardFairVLMed10kVQA,
+    "Harvard-FairVLMed10k-vqa": HarvardFairVLMed10kVQA,  # legacy name
     "MedXpertQA-vqa": MedXpertQA,
     "OmniMedVQA-vqa": OmniMedVQA,
     "MIMIC_CXR-caption": MIMIC_CXRCaption,

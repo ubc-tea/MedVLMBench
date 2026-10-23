@@ -61,7 +61,7 @@ MODELS = CLIP_MODELS + VISION_FOUNDATION_MODELS + LANGUAGE_MODELS
 
 
 # datasets
-VQA_DATASETS = ["SLAKE", "PathVQA", "VQA-RAD", "Harvard-FairVLMed10k", "MedXpertQA", "OmniMedVQA"]
+VQA_DATASETS = ["SLAKE", "PathVQA", "VQA-RAD", "HarvardFairVLMed10k", "Harvard-FairVLMed10k", "MedXpertQA", "OmniMedVQA"]
 CAPTION_DATASETS = ["HarvardFairVLMed10k", "MIMIC_CXR"]
 DIAGNOSIS_DATASETS = [
     "PneumoniaMNIST",

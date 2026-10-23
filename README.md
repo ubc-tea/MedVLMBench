@@ -124,6 +124,21 @@ cd data
 git clone https://huggingface.co/datasets/foreverbeliever/OmniMedVQA
 ```
 
+**Example: FairVLMed10k**
+
+Download [Harvard-FairVLMed10k](https://ophai.hms.harvard.edu/datasets/harvard-fairvlmed10k) and keep all three tasks under one folder:
+
+```
+data/FairVLMed10k/
+├── vqa_{train,test}.csv
+├── caption_{train,test}.csv
+├── split/{train,test}.csv    # diagnosis
+├── Training/                 # *.npz
+└── Test/
+```
+
+Pass `--image_path ./data` for VQA, captioning, and diagnosis (`--dataset HarvardFairVLMed10k`).
+
 ---
 
 ## Available Models and Datasets

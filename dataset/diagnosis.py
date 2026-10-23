@@ -11,6 +11,8 @@ from torchvision import transforms
 from torch.utils.data import Dataset
 from sklearn.model_selection import train_test_split
 
+from dataset.base import resolve_fairvlmed10k_roots
+
 
 def get_default_root():
     home = expanduser("~")
@@ -986,17 +988,13 @@ class FairVLMed10kDataset(torch.utils.data.Dataset):
         self.transform = transform
         self.name = "FairVLMed10k"
 
-        self.meta_path = os.path.join(
-            data_args.image_path, "FairVLMed10k", "split", f"{split}.csv"
-        )
+        meta_file = os.path.join("split", f"{split}.csv")
+        meta_root, self.path_to_images = resolve_fairvlmed10k_roots(data_args.image_path, meta_file)
+        self.meta_path = os.path.join(meta_root, meta_file)
         self.df = pd.read_csv(self.meta_path)
 
         self.Y = np.where(self.df["glaucoma"].str.lower() == "yes", 1, 0).astype(
             np.int64
-        )
-
-        self.path_to_images = os.path.join(
-            data_args.image_path, "FairVLMed10k"
         )
 
     def __len__(self):
@@ -1005,7 +1003,10 @@ class FairVLMed10kDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         img_rel_path = str(self.df.iloc[idx]["path"])
         img_path = os.path.join(self.path_to_images, img_rel_path)
-        image = Image.open(img_path).convert("RGB")
+        if img_path.endswith(".npz"):
+            image = Image.fromarray(np.load(img_path)["slo_fundus"]).convert("RGB")
+        else:
+            image = Image.open(img_path).convert("RGB")
 
         label = torch.tensor(self.Y[idx], dtype=torch.long)
 
